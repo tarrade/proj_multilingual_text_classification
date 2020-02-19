@@ -1,0 +1,48 @@
+resources:
+- name: ai-platform-{{env["deployment"]}}
+  type: compute.v1.instance
+  properties:
+    zone: {{properties["zone"]}}
+    tags:
+        items:
+        - deeplearning-vm
+    machineType: zones/{{ properties["zone"] }}/machineTypes/{{properties["machineTypes"]}}
+    disks:
+    - boot: true
+      autoDelete: true
+      initializeParams:
+        diskSizeGb: {{properties["diskSizeGb"]}}
+        sourceImage: projects/deeplearning-platform-release/global/images/family/{{properties["image"]}}
+    networkInterfaces:
+    - subnetwork: projects/{{env["project"]}}/regions/{{properties["region"]}}/subnetworks/default
+      accessConfigs:
+      - name: External NAT
+        type: ONE_TO_ONE_NAT
+    metadata:
+        items:
+        - key: startup-script-url
+          value: gs://{{properties["bucketName"]}}/scripts/start-up-scrip-ai-vm.sh
+        - key: post-startup-script
+          value: |
+            gs://{{properties["bucketName"]}}/scripts/auto-shutdown-scrip.sh
+        - key: framework
+          value: {{properties["framework"]}}
+        - key: proxy-mode
+          value: project_editors
+        - key: container
+          value: {{properties["container"]}}
+        - key: shutdown-script
+          value: timeout 30 gcloud compute instances remove-metadata container-{{env["deployment"]}} --keys=proxy-url --zone {{properties["zone"]}}
+        - key: title
+          value: Base.Container
+    labels:
+        application: {{properties["application-tag"]}}
+        tag: {{ properties["application-version-tag"]|replace(".", "-") }}
+        network:  {{properties["network-tag"]}}
+        owner: {{properties["owner-tag"]}}
+        type:  {{properties["type-tag"]}}
+        creation: {{properties["creation-tag"]}}
+    serviceAccounts:
+    - email: default
+      scopes:
+      - https://www.googleapis.com/auth/cloud-platform

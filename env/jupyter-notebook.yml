@@ -1,0 +1,25 @@
+name: jupyter-notebook
+channels:
+- defaults
+- conda-forge
+dependencies:
+- python=3.6
+- jupyter
+- jupyterlab
+- ipykernel
+- notebook
+- nb_conda
+- nb_conda_kernels
+- jupyter_nbextensions_configurator
+- jupyter_contrib_nbextensions
+- jupyterlab-git
+- jupyterlab_code_formatter
+- six
+- autopep8
+- pep8
+- black
+- flake8
+- nbdime
+- pip
+- pip:
+    - jupyterlab_latex

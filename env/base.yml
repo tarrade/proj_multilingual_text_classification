@@ -1,0 +1,27 @@
+name: base
+channels:
+- defaults
+- conda-forge
+dependencies:
+# core packages
+- nodejs
+- pip
+- nbdime
+# code audit
+- watermark
+- pylint
+- pytest
+- autopep8
+- pep8
+- pylama
+- flake8
+- black
+# notebook packages
+- jupyterlab
+- ipykernel
+- notebook
+- nb_conda_kernels
+- jupyterlab-git
+- jupyterlab_code_formatter
+- pip:
+    - jupyterlab_latex

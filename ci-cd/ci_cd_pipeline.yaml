@@ -1,0 +1,260 @@
+steps:
+
+
+# Copy config files
+- name: 'gcr.io/cloud-builders/git'
+  args: 
+  - 'clone'
+  - 'https://github.com/tarrade/proj_NLP_text_classification_with_GCP'
+  id: Clone Github
+
+
+# Set and print env variables for its execution
+- name: 'debian'
+  args: 
+  - 'bash'
+  - 'check_env.sh'
+  env:
+  - 'PROJECT=$PROJECT_ID'
+  - 'NAME_INSTANCE=${_NAME_INSTANCE}'
+  - 'TAG=${_TAG}'
+  - 'DOCKERFILE=${_DOCKERFILE}'
+  - 'OWNER=${_OWNER}'
+  - 'NETWORK=${_NETWORK}'
+  - 'BUCKET=${_BUCKET}'
+  id: Check env variables
+  dir: 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}'
+
+
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: 
+  - 'cp'
+  - 'gs://${_BUCKET}/scripts/.gitconfig'
+  - 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}/.'
+  id: Copy git config file
+
+
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: 
+  - 'cp'
+  - 'gs://${_BUCKET}/scripts/.condarc'
+  - 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}/.'
+  id: Copy conda config file
+
+
+- name: 'gcr.io/cloud-builders/gsutil'
+  args: 
+  - 'cp'
+  - 'gs://${_BUCKET}/scripts/pip.conf'
+  - 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}/.'
+  id: Copy pip config file
+
+
+- name: 'debian'
+  args: 
+  - 'cp'
+  - 'proj_NLP_text_classification_with_GCP/env/base.yml'
+  - 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}/.'
+  id: Copy base env
+
+
+- name: 'debian'
+  args: 
+  - 'cp'
+  - 'proj_NLP_text_classification_with_GCP/env/environment.yml'
+  - 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}/.'
+  id: Copy env environment.yml
+
+
+- name: 'debian'
+  args:
+  - 'cp'
+  - 'proj_NLP_text_classification_with_GCP/env/environment_gcp.yml'
+  - 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}/.'
+  id: Copy env old environment.yml
+
+
+# Check the config of Docker
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'info'
+  id: Check the config of Docker
+
+
+# Restore cache
+#- name: 'gcr.io/$PROJECT_ID/restore_cache'
+#  args:
+#  - '--bucket=gs://project-cache/'
+#  - '--key=gradle-$( checksum build.gradle )'
+#  waitFor: 
+#  - '-'
+#  id: Restore cache from gs
+
+
+# Build docker image with latest tag using cache
+#- name: 'gcr.io/cloud-builders/docker'
+#  entrypoint: 'bash'
+#  args:
+#  - '-c'
+#  - |
+#    docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest || exit 0
+#- name: 'gcr.io/cloud-builders/docker'
+#  args:
+#  - 'build'
+#  - '-t'
+#  - 'gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest'
+#  - '-t'
+#  - 'gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG}'
+#  #- '--cache-from'
+#  #- 'gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest'
+#  - '.'
+#  id: Build the Docker image
+#  dir: 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}'
+
+
+## Build docker image with the tag
+#- name: 'gcr.io/cloud-builders/docker'
+#  args:
+#  - 'build'
+#  - '-t'
+#  - 'gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG}'
+#  - '-t'
+#  - 'gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest'
+#  - '.'
+#  id: Build the Docker image
+#  dir: 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}'
+# Build docker image with the tag
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest . ; fi'
+  id: Build the Docker image
+  dir: 'proj_NLP_text_classification_with_GCP/docker/${_DOCKERFILE}'
+
+
+## Describe images
+#- name: 'gcr.io/cloud-builders/docker'
+#  args:
+#  - 'image'
+#  - 'inspect'
+#  - 'gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG}'
+#  id: Describe the images
+# Describe images
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'if [ ${_BUILD} == "true" ]; then docker image inspect gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} ; fi'
+  id: Describe the images
+
+
+## Check sizes of the images
+#- name: 'gcr.io/cloud-builders/docker'
+#  args:
+#  - 'images'
+#  id: Check sizes of the images
+# Check sizes of the images
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'if [ ${_BUILD} == "true" ]; then docker images ; fi'
+  id: Check sizes of the images
+
+
+## Push image in Container Registry with a tag
+#- name: 'gcr.io/cloud-builders/docker'
+#  args:
+#  - 'push'
+#  - 'gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG}'
+#  id: Push the image in ContainerRegistry
+# Push image in Container Registry with a tag
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'if [ ${_BUILD} == "true" ]; then docker push gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} ; fi'
+  id: Push the image in ContainerRegistry
+
+
+## Push image in Container Registry with the tag latest
+#- name: 'gcr.io/cloud-builders/docker'
+#  args:
+#  - 'push'
+#  - 'gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest'
+#  env:
+#    - 'DOCKER_DRIVER=overlay'
+#  id: Push the image latest in ContainerRegistry
+# Push image in Container Registry with the tag latest
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'if [ ${_BUILD} == "true" ]; then docker push gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest ; fi'
+  id: Push the image latest in ContainerRegistry
+
+
+# Create timestamp
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: sh
+  args: ['-c', 'date_test=$(date -u +%Y-%m-%d-%H-%M); echo $date_test>_DATE;echo $(cat _DATE)']
+  id: Create timestamp
+
+
+# Deploy (add , '--verbosity', 'debug' for more info)
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: bash
+  id: Deploy the AI Platform Notebook instance
+  args: 
+  - '-c'
+  - |
+    gcloud \
+    deployment-manager \
+    deployments \
+    create \
+    ${_NAME_INSTANCE}-${_OWNER}-$(date -u +%Y-%m-%d-h-%H-%M) \
+    --template \
+    notebook-instance-optimized-template.jinja \
+    --properties \
+    network:${_NETWORK},bucketName:${_BUCKET},container:gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG},application-version-tag:${_TAG},owner-tag:${_OWNER} \
+  dir: 'proj_NLP_text_classification_with_GCP/deployment'
+
+#vm-fabien-notebook-2019-11-08-17-53
+#${_OWNER}-${_NAME_INSTANCE}-$(date -u +%Y-%m-%d-%H-%M)
+#date-$(date -u +%Y-%m-%d-%H-%M)-${_NAME_INSTANCE}
+
+
+# Read timestamp
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: sh
+  args: ['-c', 'echo $(cat _DATE)']
+  id: Read timestamp
+
+
+# Save cache 
+#- name: 'gcr.io/$PROJECT_ID/save_cache'
+#  args:
+#  - '--bucket=gs://${_CACHE_BUCKET}'
+#  - '--key=build-cache-$( checksum build.gradle )-$( checksum cloudbuild.yaml )'
+#  - '--path=.gradle/caches'
+#  - '--path=.gradle/wrapper'
+#  waitFor:
+#  - Push the image in ContainerRegistry
+#  id: Store cache in gs
+
+
+substitutions:
+    _BUCKET: not-defined
+    _TAG: dev
+    _NAME_INSTANCE: test
+    _DOCKERFILE: derived-pytorch-cpu
+    _NETWORK: default
+    _OWNER: name
+    _DATE: none
+    _CACHE_BUCKET: none
+    _CONFIG_BUCKET: none
+    _BUILD: none
+
+
+timeout: 2h00m0s

@@ -1,0 +1,29 @@
+trainingInput:
+  scaleTier: BASIC
+  hyperparameters:
+    algorithm: ALGORITHM_UNSPECIFIED
+    goal: MAXIMIZE
+    maxTrials: 50
+    maxParallelTrials: 5
+    enableTrialEarlyStopping: TRUE 
+    maxFailedTrials: 1
+    hyperparameterMetricTag: accuracy
+    params:
+    - parameterName: WE_max_df
+      type: DOUBLE
+      minValue: 0.0
+      maxValue: 1.0
+      scaleType: UNIT_LINEAR_SCALE
+    - parameterName: WE_min_df
+      type: DOUBLE
+      minValue: 0.0
+      maxValue: 1.0
+      scaleType: UNIT_LINEAR_SCALE
+    - parameterName: FT_norm
+      type: CATEGORICAL
+      categoricalValues: ['l1', 'l2', 'None']
+    - parameterName: M_alpha
+      type: DOUBLE
+      minValue: 0.0
+      maxValue: 1.0
+      scaleType: UNIT_LINEAR_SCALE
