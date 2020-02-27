@@ -3,7 +3,7 @@
 ## Introduction
 
 ## Code structure
-![alt text](./doc/img/tree.png ="50%")  
+"![alt text](./doc/img/tree.png =50%)"
 
 ## General presentation and results of this project:
 [Documentation](doc/DOC.md)
