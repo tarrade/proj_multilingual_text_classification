@@ -3,7 +3,7 @@
 ## Introduction
 
 ## Code structure
-![alt text](./doc/img/tree.png)  
+![alt text](./doc/img/tree.png)
 
 ## General presentation and results of this project:
 [Documentation](doc/DOC.md)
