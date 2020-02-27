@@ -1,16 +1,8 @@
 .idea/
-data/cased_L-12_H-768_A-12/
-data/cased_L-24_H-1024_A-16/
-data/uncased_L-12_H-768_A-12/
-data/uncased_L-24_H-1024_A-16/
 .data/
 __pycache__/
 *.bak
 .ipynb_checkpoints
 .DS_Store
-env/test.yml
 *.egg-info
 *.pyc
-core
-MANIFEST
-model.joblib
