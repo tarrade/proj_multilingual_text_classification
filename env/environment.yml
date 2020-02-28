@@ -79,4 +79,4 @@ dependencies:
   #- google-cloud==0.34.0
   #- google-cloud-trace==0.23.0
   #- google-cloud-datastore==1.7.4
-  - grpcio #issue with TensorBoard
+  #- grpcio #issue with TensorBoard
