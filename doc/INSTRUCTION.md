@@ -1,1 +1,1 @@
-## General presentation and results of this project:
+## How to created self custom AI Platform notebook on GCP
