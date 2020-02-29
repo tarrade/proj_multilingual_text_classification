@@ -1,6 +1,6 @@
 Environment variables that need to be defined: 
 `export DIR_PROJ=your_path_git_repository`  
-`export PYTHONPATH=$DIR_PROJ`  
+`export PYTHONPATH=$DIR_PROJ/src`  
 `export PATH_TENSORBOARD=your_path_tensorboard`  
 `export PATH_DATASETS=your_path_datasets`  
 `export PROJECT_ID=your_gcp_project_id`  

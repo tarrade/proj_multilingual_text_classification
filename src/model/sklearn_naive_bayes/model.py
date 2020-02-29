@@ -8,8 +8,8 @@ from sklearn.metrics import (
     confusion_matrix,
     accuracy_score
 )
-import src.utils.ressources_utils as mem_utils
-import src.analysis.get_data as get_data
+import utils.ressources_utils as mem_utils
+import analysis.get_data as get_data
 
 def train_and_evaluate(eval_size, frac, max_df, min_df, norm, alpha, nb_label):
     
