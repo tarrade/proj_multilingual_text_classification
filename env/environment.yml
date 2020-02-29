@@ -18,6 +18,7 @@ dependencies:
 # machine learning
 - lime=0.1.1.37 #conda-forge
 - scikit-learn=0.22.1
+- scikit-plot=0.3.7
 # machine learning - nlp
 - nltk=3.4.5
 - gensim=3.8.0
