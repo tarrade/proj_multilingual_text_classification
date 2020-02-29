@@ -16,12 +16,12 @@ If you use a local jupyter notebook you need GCP SDK to be installed to be able 
 You can also use you prefer IDE like PyCharm or Visual Studio Code.
 
 ## Python packages
-For this project, we use Anaconda to create conda environment to get all the pythons packages we need
-How to create conda environment abd which packages is describe in this 
+For this project, we use Anaconda to create Anaconda python environment using conda to get all the pythons packages we need.
+Instruction to create Anaconda python environment is describe in this 
 [link](doc/conda_env.md).
 
 ## Code, training and serving
-How to run the code to train and serve our models is describe in this 
+How to run the code to train and serve the models is describe in this 
 [link](doc/instruction_run_code.md).
 
 ## Results
