@@ -1,1 +1,0 @@
-## How to created self custom AI Platform notebook on GCP

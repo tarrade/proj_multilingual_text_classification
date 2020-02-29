@@ -10,8 +10,8 @@ Clearly some adaption will be needed for each use case or is other tools are use
 ![alt text](./doc/img/tree.png)
 
 ## Jupyter Lab for exploration
-You can use a local Jupyter Lab notebook or one created using on GCP using AI Platform Notebook.
-You can also create one on GCP using some kind of automatic process. You will find more information in the [link](doc/INSTRUCTION.md).
+You can use a local Jupyter Lab notebook as describe in this [link](doc/local_jupyter_lab_installation.md) or one created using on GCP using AI Platform Notebook.
+You can also create one on GCP using some kind of automatic process and you can find more information in the [link](doc/creation_ai_platform_notebook.md).
 If you use a local jupyter notebook you need GCP SDK to be installed to be able to access GCP services for training and serving.
 You can also use you prefer IDE like PyCharm or Visual Studio Code.
 
@@ -21,8 +21,8 @@ How to create conda environment abd which packages is describe in this
 [link](doc/conda_env.md).
 
 ## Code, training and serving
-How to run the code to train and serve our models is decribe in this 
-[link](doc/DOC.md).
+How to run the code to train and serve our models is describe in this 
+[link](doc/instruction_run_code.md).
 
 ## Results
 Main results will be describe here
