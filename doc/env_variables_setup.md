@@ -19,7 +19,7 @@ Environment variables that need to be defined:
 
 - Use GCP Jupyter Lab
   - you need to start a AI Platform instance
-  - 
+  - open a Jupyter Lab terminal and create a file `config.txt` in `/home` with the following information:
     ```
     #!/bin/bash
     
