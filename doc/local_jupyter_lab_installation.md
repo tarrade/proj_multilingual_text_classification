@@ -1,4 +1,4 @@
-## Use JupyterLab   
+## Create Jupyter Lab notebook locally
 You need to copy base.yml from https://github.com/tarrade/proj_custom_ai_platform_notebook/blob/master/env/base.yml
 in the ```env/``` folder.
 - create the python conda env to run Jupyter Lab (or Jupyter Notebook)   
