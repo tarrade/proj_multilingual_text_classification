@@ -1,4 +1,4 @@
-# How to install nd manage python packages needed run the code
+# How to install and manage python packages needed run the code
 
 ## Create the python conda env  
 This will provide you a unique list of python packages needed to run the code
