@@ -8,18 +8,19 @@ Environment variables that need to be defined:
 `export REGION=your_region`  
 `export MODEL_DIR_ESTIMATOR_PATH=your_path_to_save_model` 
 
-- Use local Jupyter Lab
-  - you need to have the `jupyter-notebook` Anaconda python environment created [link](local_jupyter_lab_installation.md) 
-  - you need to have the `jupyter-notebook` Anaconda python environment activated [link](local_jupyter_lab_installation.md)
-  - then define the environment variables above (copy and paste)
-  - you need to have the `env_multilingual_class` Anaconda python environment created [link](local_jupyter_lab_installation.md) 
-  - start Jupyter Lab:  `jupyter lab` 
-  - open a Jupyter Lab notebook from `notebook/`
-  - choose the proper Anaconda python environment:  `Python [conda env:env_multilingual_class]` [link](conda_env.md)
+- Use local Jupyter Lab 
+    - you need to have the `jupyter-notebook` Anaconda python environment created [link](local_jupyter_lab_installation.md) 
+    - you need to have the `jupyter-notebook` Anaconda python environment activated [link](local_jupyter_lab_installation.md) 
+    - then define the environment variables above (copy and paste) 
+    - you need to have the `env_multilingual_class` Anaconda python environment created [link](local_jupyter_lab_installation.md)  
+    - start Jupyter Lab:  `jupyter lab` 
+    - open a Jupyter Lab notebook from `notebook/` 
+    - choose the proper Anaconda python environment:  `Python [conda env:env_multilingual_class]` [link](conda_env.md) 
 
-- Use GCP Jupyter Lab
-  - you need to start a AI Platform instance
-  - open a Jupyter Lab terminal and create a file `config.txt` in `/home` with the following information:
+
+- Use GCP Jupyter Lab 
+    - you need to start a AI Platform instance 
+    - open a Jupyter Lab terminal and create a file `config.txt` in `/home` with the following information: 
     ```
     #!/bin/bash
     
@@ -27,7 +28,7 @@ Environment variables that need to be defined:
     git config --global user.email user_email
     git config --global user.name user_name
     git config --global credential.helper store
-    
+        
     # Add here the enviroment variables from above below
     
     cd /home/gcp_user_name/
