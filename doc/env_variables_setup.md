@@ -1,4 +1,4 @@
-Environment variables that need to be defined: 
+Environment variables that need to be defined:   
 `export DIR_PROJ=your_path_git_repository`  
 `export PYTHONPATH=$DIR_PROJ/src`  
 `export PATH_TENSORBOARD=your_path_tensorboard`  
@@ -19,8 +19,19 @@ Environment variables that need to be defined:
 
 
 - Use GCP Jupyter Lab 
+    - Go on GCP
+    - open a Cloud Shell
+    - `ssh-keygen -t rsa -b 4096 -C firstName_lastName`
+    - `cp .ssh/id_rsa.pub .`
+    - use Cloud Editor to edit this file `id_rsa.pub` and copy the full content
+    - Go on Compute Engine -> Metadata
+    - Click SSH Keys
+    - Click Edit
+    - Click + Add item, copy the content of `id_rsa.pub`
+    - You should see firstName_lastName of the left
+    - Click Save
     - you need to start a AI Platform instance 
-    - open a Jupyter Lab terminal and create a file `config.txt` in `/home` with the following information: 
+    - open a Jupyter Lab terminal and create a file `config.sh` in `/home` with the following information: 
     ```
     #!/bin/bash
     
@@ -30,6 +41,8 @@ Environment variables that need to be defined:
     git config --global credential.helper store
         
     # Add here the enviroment variables from above below
-    
+    export DIR_PROJ= ...
+    ...
+  
     cd /home/gcp_user_name/
     ```
