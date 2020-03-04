@@ -76,19 +76,17 @@ jupyter serverextension enable --py jupyterlab_code_formatter
 - implement this trick to fix an issue with Black and temp folders that are created too late: 19.10b0
 
 ```
-python -c "import logging; logging.basicConfig(level=logging.INFO); import black"
-touch black.py
-sed -i "import pandas as pd\nprint(pd.__version__)"  black.py
+cd test 
 black black.py
 python -c "import logging; logging.basicConfig(level=logging.INFO); import black"
+cd ..
 ```
 
-If the commands 'touch' and 'sed' are not recognized, it is probably because your are running this from a Windows machine since those are unix commands.
-In this case, manually create a black.py file in the file directory /proj_multilingual_text_classification/ and type the following code into it (with quotes):
+This executes the code
 ```
 "import pandas as pd\nprint(pd.__version__)"
 ```
-
+in the black.py file.
 
 - start Jupyter Lab from the terminal for which 'jupyter-notebook' env is activated  
   ```jupyter lab```  
