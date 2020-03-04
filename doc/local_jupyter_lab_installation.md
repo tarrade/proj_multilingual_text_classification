@@ -1,14 +1,16 @@
 ## Create Jupyter Lab notebook locally
 You need to copy base.yml from https://github.com/tarrade/proj_custom_ai_platform_notebook/blob/master/env/base.yml
 in the ```env/``` folder.
-- create the python conda env to run Jupyter Lab (or Jupyter Notebook)   
+- clone the git repository https://github.com/tarrade/proj_multilingual_text_classification.git
+- change directory to 'proj_multilingual_text_classification'
+- create the python conda env to run Jupyter Lab (or Jupyter Notebook) from the command line/terminal:   
   ```conda env create -f env/base.yml```    
   (you should have nodejs installed with conda)  
 
-- activate the env  
+- activate the env:  
   ```conda activate jupyter-notebook```  
   
-- install jupyter extension by copying the following lines  
+- install jupyter extension by copying the following lines into the command line/terminal.
 check the latest instructions about jupyter lab extension from https://github.com/tarrade/proj_custom_ai_platform_notebook/blob/master/docker/derived-pytorch-cpu/Dockerfile
  
 ```
@@ -63,7 +65,7 @@ jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build --de
 #jupyter labextension install @bokeh/jupyter_bokeh --debug
 
 # Building
-jpyter lab build --debug
+jupyter lab build --debug
 
 # Checking full list
 jupyter labextension list
@@ -71,17 +73,27 @@ jupyter labextension list
 jupyter serverextension enable --py jupyterlab_code_formatter
 ```
 
-- trick to fix an issue with Black and temp folders that are created too late: 19.10b0
+- implement this trick to fix an issue with Black and temp folders that are created too late: 19.10b0
+
 ```
 python -c "import logging; logging.basicConfig(level=logging.INFO); import black"
-touch /black.py
-sed -i "import pandas as pd\nprint(pd.__version__)"  /black.py
-black /black.py
+touch black.py
+sed -i "import pandas as pd\nprint(pd.__version__)"  black.py
+black black.py
 python -c "import logging; logging.basicConfig(level=logging.INFO); import black"
 ```
 
+If the commands 'touch' and 'sed' are not recognized, it is probably because your are running this from a Windows machine since those are unix commands.
+In this case, manually create a black.py file in the file directory /proj_multilingual_text_classification/ and type the following code into it (with quotes):
+```
+"import pandas as pd\nprint(pd.__version__)"
+```
+
+
 - start Jupyter Lab from the terminal for which 'jupyter-notebook' env is activated  
   ```jupyter lab```  
+  
+  Note: If you get any errors regarding the dynamic link library, make sure that conda is updated to the newest version and try again.
 
 ## Note about conda env in Jupyter notebook  
    To be able to see conda env in Jupyter notebook, you need:  
