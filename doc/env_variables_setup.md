@@ -15,7 +15,9 @@ Environment variables that need to be defined:
     - you need to have the `env_multilingual_class` Anaconda python environment created [link](local_jupyter_lab_installation.md)  
     - start Jupyter Lab:  `jupyter lab` 
     - open a Jupyter Lab notebook from `notebook/` 
+     - clone this repositiory: `git clone https://github.com/tarrade/proj_multilingual_text_classification.git`
     - choose the proper Anaconda python environment:  `Python [conda env:env_multilingual_class]` [link](conda_env.md) 
+    - clone this repositiory: `git clone https://github.com/tarrade/proj_multilingual_text_classification.git`
 
 
 - Use GCP Jupyter Lab 
@@ -31,7 +33,11 @@ Environment variables that need to be defined:
     - You should see firstName_lastName of the left
     - Click Save
     - you need to start a AI Platform instance 
-    - open a Jupyter Lab terminal and create a file `config.sh` in `/home` with the following information: 
+    - open a Jupyter Lab terminal and got to `/home/gcp_user_name/`
+    - clone this repositiory: `git clone https://github.com/tarrade/proj_multilingual_text_classification.git`
+    - then `cd proj_multilingual_text_classification/`
+    - create the Anacond Python environment `conda env create -f env/environment.yml`
+    - create a file `config.sh` in `/home` with the following information: 
     ```
     #!/bin/bash
     
@@ -45,4 +51,10 @@ Environment variables that need to be defined:
     ...
   
     cd /home/gcp_user_name/
+    
+    conda activate env_multilingual_class
+
+    export PS1="[\e[91m\]\u@:\[\e[32m\]\w/]$"
     ```
+    - Got to AI Platform Notebook, select your instance and click "Reset".
+    - Wait and reshreh you Web browser with the Notebook
