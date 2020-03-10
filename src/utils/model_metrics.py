@@ -13,6 +13,52 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import scikitplot as skplt
 
+def plot_acc_loss(steps_loss_train, loss_train,
+                  steps_acc_train=None, accuracy_train=None,
+                  steps_loss_eval=None, loss_eval=None,
+                  steps_acc_eval=None, accuracy_eval=None):
+
+    # plot the training loss and accuracy
+    fig = plt.figure(figsize=(9, 3), dpi=100)
+    plt.subplots_adjust(wspace=0.6)
+    ax1 = plt.subplot(121)
+    ax2 = plt.subplot(122)
+
+    # accuracy
+    if accuracy_train is not None:
+        ax1.plot(steps_acc_train, accuracy_train, 'b', label='training accuracy')
+    if accuracy_eval is not None:
+        ax1.plot(steps_acc_eval, accuracy_eval, 'r', label='validation accuracy');
+    #if accuracy_train is not None and accuracy_eval is not None:
+    #    delta=0.05
+    #    y_min = min([min(x_list) for x_list in [accuracy_train, accuracy_eval]]) - delta
+    #    y_max = max([max(x_list) for x_list in [accuracy_train, accuracy_eval]]) + delta
+    #    ax1.set_ylim(y_min, y_max)
+    ax1.set_title('Accuracy')
+    ax1.set_xlabel("Number of epoch ")
+    ax1.set_ylabel("Accuracy")
+    ax1.legend(loc="best")
+    # loss
+    if loss_train is not None:
+        ax2.plot(steps_loss_train, loss_train, label="training loss")
+    if loss_eval is not None:
+        ax2.plot(steps_loss_eval, loss_eval, label="validation loss")
+    ax2.set_title("Loss")
+    ax2.set_xlabel("Number of epoch ")
+    ax2.set_ylabel("Loss")
+    ax2.legend(loc="best");
+
+    print('Loss:')
+    if loss_train is not None:
+        print('  - loss [training dataset]: {0:.3f}'.format(loss_train[-1]))
+    if loss_eval is not None:
+        print('  - loss [validation dataset: {0:.3f}'.format(loss_eval[-1]))
+    print('')
+    print('Accuracy:')
+    if accuracy_train is not None:
+        print('  - accuracy [training dataset]: {:.2f}%'.format(100 * accuracy_train[-1]))
+    if accuracy_eval is not None:
+        print('  - accuracy [validation dataset: {:.2f}%'.format(100 * accuracy_eval[-1]))
 
 def print_metrics(y_t, y_pred_t, mode=''):
     """
