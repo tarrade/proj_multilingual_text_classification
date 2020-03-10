@@ -24,7 +24,7 @@ dependencies:
 - gensim=3.8.0
 - spacy=2.2.3 #conda-forge
 - langdetect=1.0.7 #conda-forge
-- tensorflow=2.0.0
+- tensorflow=2.1.0 # Mac only 2.0.0
 # code audit
 - psutil=5.6.7
 - pympler=0.8 #conda-forge
@@ -51,7 +51,6 @@ dependencies:
   - tensorflow-addons==0.7.1
   - cloudml-hypertune==0.1.0.dev6
   # machine learning - nlp
-  #- setuptools_rust
   - transformers==2.5.1
   # EN core trained on web small size(sm) (exist md:medium or ld:large)
   - "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"
