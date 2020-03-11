@@ -24,7 +24,7 @@ dependencies:
 - gensim=3.8.0
 - spacy=2.2.3 #conda-forge
 - langdetect=1.0.7 #conda-forge
-- tensorflow=2.1.0 # Mac only 2.0.0
+- tensorflow=2.1.0 
 # code audit
 - psutil=5.6.7
 - pympler=0.8 #conda-forge
