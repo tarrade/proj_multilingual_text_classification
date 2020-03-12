@@ -3,7 +3,7 @@
 ## Create the python conda env  
 This will provide you a unique list of python packages needed to run the code
 - create a python env based on a list of packages from environment.yml  
-  ```conda env create -f env/environment.yml```  
+  ```conda env create -f env/environment.yaml```  
   
   the name of the env NAME_ENV is define in the first line of ```env/environment.yml``` 
   and in this is is ```env_multilingual_class```
@@ -16,7 +16,7 @@ This will provide you a unique list of python packages needed to run the code
 
 ## Update the python conda env  
 - update a python env based on a list of packages from environment.yml  
-  ```conda env update -f env/environment.yml```  
+  ```conda env update -f env/environment.yaml```  
  
 ## Delete the python conda env    
 - delete the env to recreate it when too many changes are done  
