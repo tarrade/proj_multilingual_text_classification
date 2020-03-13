@@ -47,14 +47,15 @@ Environment variables that need to be defined:
     git config --global credential.helper store
         
     # Add here the enviroment variables from above below
-    export DIR_PROJ= ...
-    ...
+    # [EDIT ME]
+    export DIR_PROJ=your_path_git_repository
+    export PYTHONPATH=$DIR_PROJ/src
   
     cd /home/gcp_user_name/
     
     conda activate env_multilingual_class
 
-    export PS1="[\e[91m\]\u@:\[\e[32m\]\w/]$"
+    export PS1='\[\e[91m\]\u@:\[\e[32m\]\w\[\e[0m\]$'
     ```
     - Got to AI Platform Notebook, select your instance and click "Reset".
     - Wait and reshreh you Web browser with the Notebook
