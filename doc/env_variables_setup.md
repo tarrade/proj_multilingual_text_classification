@@ -6,7 +6,7 @@ Environment variables that need to be defined:
 `export PROJECT_ID=your_gcp_project_id`  
 `export BUCKET_NAME=your_gcp_gs_bucket_name`  
 `export REGION=your_region`  
-`export MODEL_DIR_ESTIMATOR_PATH=your_path_to_save_model` 
+`export PATH_SAVE_MODEL=your_path_to_save_model` 
 
 - Use local Jupyter Lab 
     - you need to have the `jupyter-notebook` Anaconda python environment created [link](local_jupyter_lab_installation.md) 
