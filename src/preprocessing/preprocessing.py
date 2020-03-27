@@ -91,22 +91,23 @@ class InputFeatures(object):
         self.label = label
 
 # define an iterable
-def gen(features):
+def _gen(features):
     for f in features:
         yield ({"idx": f.idx,
                 "label": f.label,
                 "sentence": f.sentence,
                 })
 
-# transofrm and return data in the right structure
-def create_tf_example(idx, label, sentence):
+# transform and return data in the right structure
+def _create_tf_example(idx, label, sentence):
+    '''Puts the three inputs into the data structure required by GLUE and is called by the function convert_to_glue.'''
 
     features = []
     for i, x in enumerate(sentence):
         features.append(InputFeatures(np.int32(idx[i]), np.int64(label[i]), sentence[i]))
 
     return tf.data.Dataset.from_generator(
-        lambda: gen(features),
+        lambda: _gen(features),
         ({"idx": tf.int32, "label": tf.int64, "sentence": tf.string}),
         ({"idx": tf.TensorShape([]),
           "label": tf.TensorShape([]),
@@ -114,3 +115,78 @@ def create_tf_example(idx, label, sentence):
           })
     )
 
+
+
+def convert_np_array_to_glue_format(sentence, label, decode=False, shift=0):
+    '''
+    Description: This function converts a DatasetV1Adapter into a glue-compatible format by calculating 
+                 the three main components from an input dataset. 
+                 The function create_tf_example from preprocessing is called to create the final dataset.
+    
+    Args:
+        sentence: numpy array either in byte utf-8 format or strings.
+        label:    numpy array either in byte utf-8 format or integers.
+        decode:   boolean which should be set to true if the numpy arrays that are passed are in byte format; 
+                  default is false
+        shift:    Parameter which ensures that indices for training and validation data set do not overlap.
+                  At the moment, this parameter is used in the following way: 
+                  1. convert the training dataset first without introducting a shift
+                  2. convert the validation dataset with a shift of the length of the training dataset
+    
+    Outputs: FlatMapDataset which fits the following structure:
+             {idx: (), label: (), sentence: ()}, types: {idx: tf.int32, label: tf.int64, sentence: tf.string}
+    
+    '''
+    
+    if decode:
+        # get label
+        to_int = lambda t: int(t.decode("utf-8"))
+        label=list(map(to_int, label))
+
+        # get idx
+        idx=[j for j in range(0,len(label))]
+
+        # get sentence
+        to_string = lambda t: t.decode("utf-8")
+        sentence=list(map(to_string, sentence))
+    else:
+        idx=[j+shift for j in range(0,len(label))]
+
+    
+    return pp._create_tf_example(idx, label, sentence)
+
+
+
+def convert_tf_data_to_glue_format(data, shift=0):
+    '''
+    Description: This function converts a DatasetV1Adapter into a glue-compatible format by calculating 
+                 the three main components from an input dataset. 
+                 The function create_tf_example from preprocessing is called to create the final dataset.
+    
+    Args: 
+        data:    DatasetV1Adapter, e.g. data['train'] when using an official Tensorflow dataset
+        shift:   Parameter which ensures that indices for training and validation data set do not overlap.
+                 At the moment, this parameter is used in the following way: 
+                 1. convert the training dataset first without introducting a shift
+                 2. convert the validation dataset with a shift of the length of the training dataset
+    
+    Outputs: FlatMapDataset which fits the following structure:
+             {idx: (), label: (), sentence: ()}, types: {idx: tf.int32, label: tf.int64, sentence: tf.string}
+    
+    '''
+    np_array=np.array(list(data.as_numpy_iterator()))
+    
+    # get label
+    to_int = lambda t: int(t.decode("utf-8"))
+    label=np_array[:,1].tolist()
+    label=list(map(to_int, label))
+    
+    # get idx
+    idx=[j+shift for j in range(0,len(label))]
+    
+    # get sentence
+    to_string = lambda t: t.decode("utf-8")
+    sentence=np_array[:,0].tolist()
+    sentence=list(map(to_string, sentence))
+    
+    return pp._create_tf_example(idx, label, sentence)
