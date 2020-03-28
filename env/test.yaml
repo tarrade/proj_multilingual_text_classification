@@ -47,10 +47,10 @@ dependencies:
   - facets-overview==1.0.0
   # machine learning
   - xgboost==1.0.1
-  - tensorflow==2.1.0 # for Mac only
+  - tensorflow==2.2.0rc2  # 2.0.0 for Mac only
   - grpcio==1.24.3 # needed for Mac only ?
   - tensorflow-hub==0.7.0
-  - tensorflow-datasets==2.2.0rc1
+  - tensorflow-datasets==2.1.0
   - tensorflow-text==2.1.0rc0
   - tensorflow-addons==0.7.1
   - cloudml-hypertune==0.1.0.dev6
