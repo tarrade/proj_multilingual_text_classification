@@ -153,7 +153,7 @@ def convert_np_array_to_glue_format(sentence, label, decode=False, shift=0):
         idx=[j+shift for j in range(0,len(label))]
 
     
-    return pp._create_tf_example(idx, label, sentence)
+    return _create_tf_example(idx, label, sentence)
 
 
 
@@ -189,4 +189,4 @@ def convert_tf_data_to_glue_format(data, shift=0):
     sentence=np_array[:,0].tolist()
     sentence=list(map(to_string, sentence))
     
-    return pp._create_tf_example(idx, label, sentence)
+    return _create_tf_example(idx, label, sentence)
