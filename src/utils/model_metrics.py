@@ -6,12 +6,14 @@ Created on Wed Nov 7 2018
 """
 import itertools
 from sklearn.metrics import (log_loss, f1_score, accuracy_score, average_precision_score, precision_score,
-                             recall_score, roc_auc_score, mean_squared_error, r2_score)
+                             recall_score, roc_curve, auc, roc_auc_score, mean_squared_error, r2_score)
 from sklearn.model_selection import learning_curve
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scikitplot as skplt
+from scipy import interp
+from itertools import cycle
 
 def plot_acc_loss(steps_loss_train, loss_train,
                   steps_acc_train=None, accuracy_train=None,
@@ -384,3 +386,115 @@ def check_confidence(model, min_conf, x_test, y_test):
                                                round(Accuracy, 4),
                                                round(Classifications, 4),
                                                round(baseline, 4)))
+
+def roc_curves(y_test, y_score, dict_label):
+    # plot configuration
+    plt.figure(figsize=(10, 8))
+    plt.rcParams.update({'font.size': 15})
+    lw = 2
+
+    n_classes = len(dict_label)
+
+    # Compute ROC curve and ROC area for each class
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+
+    # compute micro-average ROC curve and ROC area
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_test.ravel(), y_score.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+
+    # compute macro-average ROC curve and ROC area
+
+    # first aggregate all false positive rates
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+
+    # then interpolate all ROC curves at this points
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(n_classes):
+        mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+
+    # Ffnally average it and compute AUC
+    mean_tpr /= n_classes
+
+    fpr["macro"] = all_fpr
+    tpr["macro"] = mean_tpr
+    roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+
+    # plot all ROC curves
+    plt.figure(1)
+    plt.plot(fpr["micro"], tpr["micro"],
+             label='micro-average ROC curve (area = {0:0.2f})'
+                   ''.format(roc_auc["micro"]),
+             color='deeppink', linestyle=':', linewidth=4)
+
+    plt.plot(fpr["macro"], tpr["macro"],
+             label='macro-average ROC curve (area = {0:0.2f})'
+                   ''.format(roc_auc["macro"]),
+             color='navy', linestyle=':', linewidth=4)
+
+    plt.plot([0, 1], [0, 1], 'k--', lw=lw)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC for multi-class')
+    plt.legend(loc="best")
+    plt.show()
+
+    # plot all ROC curves
+    plt.figure(figsize=(10, 8))
+    plt.plot(fpr["micro"], tpr["micro"],
+             label='micro-average ROC curve (area = {0:0.2f})'
+                   ''.format(roc_auc["micro"]),
+             color='deeppink', linestyle=':', linewidth=4)
+
+    plt.plot(fpr["macro"], tpr["macro"],
+             label='macro-average ROC curve (area = {0:0.2f})'
+                   ''.format(roc_auc["macro"]),
+             color='navy', linestyle=':', linewidth=4)
+
+    colors = cycle(['pink', 'purple', 'deeppink', 'lavenderblush', 'darkorchid', 'orchid', 'hotpink', 'darkslateblue'])
+    for i, color in zip(range(n_classes), colors):
+        plt.plot(fpr[i], tpr[i], color=color, lw=lw,
+                 label='ROC curve for {0} (area = {1:0.2f})'
+                       ''.format(dict_label[i], roc_auc[i]))
+
+    plt.plot([0, 1], [0, 1], 'k--', lw=lw)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC for multi-class')
+    plt.legend(loc="best", prop={'size': 13})
+    plt.show()
+
+    # zoom in view of the upper left corner.
+    plt.figure(figsize=(10, 8))
+    plt.xlim(0, 0.4)
+    plt.ylim(0.7, 1)
+    plt.plot(fpr["micro"], tpr["micro"],
+             label='micro-average ROC curve (area = {0:0.2f})'
+                   ''.format(roc_auc["micro"]),
+             color='deeppink', linestyle=':', linewidth=4)
+
+    plt.plot(fpr["macro"], tpr["macro"],
+             label='macro-average ROC curve (area = {0:0.2f})'
+                   ''.format(roc_auc["macro"]),
+             color='navy', linestyle=':', linewidth=4)
+
+    colors = cycle(['pink', 'purple', 'deeppink', 'lavenderblush', 'darkorchid', 'orchid', 'hotpink', 'darkslateblue'])
+    for i, color in zip(range(n_classes), colors):
+        plt.plot(fpr[i], tpr[i], color=color, lw=lw,
+                 label='ROC curve for {0} (area = {1:0.2f})'
+                       ''.format(dict_label[i], roc_auc[i]))
+
+    plt.plot([0, 1], [0, 1], 'k--', lw=lw)
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC for multi-class')
+    plt.legend(loc="best")
+    plt.show()
