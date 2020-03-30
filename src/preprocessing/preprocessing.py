@@ -190,3 +190,10 @@ def convert_tf_data_to_glue_format(data, shift=0):
     sentence=list(map(to_string, sentence))
     
     return _create_tf_example(idx, label, sentence)
+
+def feature_selection(feature, label):
+    print('feature:',feature['input_ids'],'label:',label)
+    return feature['input_ids'], label
+
+def label_extraction(feature, label):
+    return label

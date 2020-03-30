@@ -97,8 +97,8 @@ def print_metrics(y_t, y_pred_t, mode=''):
     print('precision (macro).. {0:8.4f}'.format(precision_macro))
     print('f1.................  {0:8.4f}'.format(f1))
     print('r2.................  {0:8.4f}'.format(r2))
-    print('logloss............  {0:8.4f}'.format(logloss))
-    print('mse................  {0:8.4f}'.format(mse))
+    #print('logloss............  {0:8.4f}'.format(logloss))
+    #print('mse................  {0:8.4f}'.format(mse))
 
 
 def plot_confusion_matrix(cm, classes,
