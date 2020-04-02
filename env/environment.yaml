@@ -57,6 +57,7 @@ dependencies:
   - cloudml-hypertune==0.1.0.dev6
   # machine learning - nlp
   - transformers==2.5.1
+  - bert-embedding
   # EN core trained on web small size(sm) (exist md:medium or ld:large)
   - "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"
   # IT core trained on news small size(sm)
