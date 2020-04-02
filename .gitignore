@@ -8,3 +8,5 @@ __pycache__/
 *.pyc
 config.txt
 notebook/00-Test/*.png
+*.html
+
