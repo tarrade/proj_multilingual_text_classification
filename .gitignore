@@ -9,4 +9,4 @@ __pycache__/
 config.txt
 notebook/00-Test/*.png
 *.html
-
+*.json
