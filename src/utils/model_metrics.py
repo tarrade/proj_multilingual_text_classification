@@ -498,3 +498,18 @@ def roc_curves(y_test, y_score, dict_label):
     plt.title('ROC for multi-class')
     plt.legend(loc="best")
     plt.show()
+
+class History_trained_model(object):
+    def __init__(self, history, epoch, params):
+        self.history = history
+        self.epoch = epoch
+        self.params = params
+
+class History_per_steps_trained_model(object):
+    def __init__(self, steps, losses, accuracies, val_steps, val_losses, val_accuracies):
+        self.steps = steps
+        self.losses = losses
+        self.accuracies = accuracies
+        self.val_steps = val_steps
+        self.val_losses = val_losses
+        self.val_accuracies = val_accuracies
