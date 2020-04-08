@@ -4,6 +4,7 @@ import datetime
 from sklearn.externals import joblib
 import re
 from google.cloud import storage
+import tensorflow as tf
 
 def save_model(estimator, gcspath, name):
     
@@ -28,3 +29,74 @@ def save_model(estimator, gcspath, name):
     blob.upload_from_filename(model)
 
     return 'gs://'+gcspath.split('/')[0]+model_path
+
+# Function for decaying the learning rate.
+def decay(epoch):
+    if epoch < 3:
+        return 1e-3
+    elif epoch >= 3 and epoch < 7:
+        return 1e-4
+    else:
+        return 1e-5
+
+# Callback for printing the LR at the end of each epoch.
+class PrintLR(tf.keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, model, logs=None):
+        print('\nLearning rate for epoch {} is {}'.format(epoch + 1, model.optimizer.lr.numpy()))
+
+# Callback to print validation accuracy after N epochs
+class History_per_step(tf.keras.callbacks.Callback):
+
+    def __init__(self, validation_data, N):
+        self.validation_data = validation_data
+        self.N = N
+        self.batch = 1
+
+    def on_train_begin(self, validation_data, logs={}):
+        self.steps = []
+        self.losses = []
+        self.accuracies = []
+        self.val_steps = []
+        self.val_losses = []
+        self.val_accuracies = []
+
+    def on_train_batch_end(self, batch, logs={}):
+        self.losses.append(logs.get('loss'))
+        self.accuracies.append(logs.get('accuracy'))
+        self.steps.append(self.batch)
+        print('\n training set -> batch:{} loss:{} and acc: {}'.format(self.batch, logs.get('loss'),
+                                                                       logs.get('accuracy')))
+
+        if self.batch % self.N == 0:
+            loss_val, acc_val = self.model.evaluate(self.validation_data, verbose=0)
+            self.val_losses.append(loss_val)
+            self.val_accuracies.append(acc_val)
+            self.val_steps.append(self.batch)
+            print('\n validation set -> batch:{} val loss:{} and val acc: {}'.format(self.batch, loss_val, acc_val))
+
+        self.batch += 1
+
+    def on_test_batch_end(self, batch, logs={}):
+        # print('{}\n'.format(logs))
+        return
+
+    def on_epoch_end(self, batch, logs={}):
+        # print('{}\n'.format(logs))
+        return
+
+# Class to save history from Keras
+class History_trained_model(object):
+    def __init__(self, history, epoch, params):
+        self.history = history
+        self.epoch = epoch
+        self.params = params
+
+# Class to save custome history created using callback
+class History_per_steps_trained_model(object):
+    def __init__(self, steps, losses, accuracies, val_steps, val_losses, val_accuracies):
+        self.steps = steps
+        self.losses = losses
+        self.accuracies = accuracies
+        self.val_steps = val_steps
+        self.val_losses = val_losses
+        self.val_accuracies = val_accuracies

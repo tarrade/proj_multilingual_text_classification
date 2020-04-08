@@ -37,7 +37,7 @@ def plot_acc_loss(steps_loss_train, loss_train,
     #    y_max = max([max(x_list) for x_list in [accuracy_train, accuracy_eval]]) + delta
     #    ax1.set_ylim(y_min, y_max)
     ax1.set_title('Accuracy')
-    ax1.set_xlabel("Number of epoch ")
+    ax1.set_xlabel("Number of step ")
     ax1.set_ylabel("Accuracy")
     ax1.legend(loc="best")
     # loss
@@ -46,7 +46,7 @@ def plot_acc_loss(steps_loss_train, loss_train,
     if loss_eval is not None:
         ax2.plot(steps_loss_eval, loss_eval, label="validation loss")
     ax2.set_title("Loss")
-    ax2.set_xlabel("Number of epoch ")
+    ax2.set_xlabel("Number of step ")
     ax2.set_ylabel("Loss")
     ax2.legend(loc="best");
 
@@ -498,18 +498,3 @@ def roc_curves(y_test, y_score, dict_label):
     plt.title('ROC for multi-class')
     plt.legend(loc="best")
     plt.show()
-
-class History_trained_model(object):
-    def __init__(self, history, epoch, params):
-        self.history = history
-        self.epoch = epoch
-        self.params = params
-
-class History_per_steps_trained_model(object):
-    def __init__(self, steps, losses, accuracies, val_steps, val_losses, val_accuracies):
-        self.steps = steps
-        self.losses = losses
-        self.accuracies = accuracies
-        self.val_steps = val_steps
-        self.val_losses = val_losses
-        self.val_accuracies = val_accuracies

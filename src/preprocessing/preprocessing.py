@@ -48,20 +48,27 @@ def print_info_data(dataset, print_example=True, n_example=3):
                                                            type(np_array[0].get(structure[2])).__name__))
 
         if type(np_array[0]) is np.ndarray:
-            structure = list(np_array[0][0].keys())
-            print('   ---> {} batches'.format(np.shape(np_array)[0]))
-            print('   ---> {} dim'.format(np_array.ndim))
-            print('        label')
-            print('           shape: {}'.format(np_array[0][1].shape))
-            print('        dict structure')
-            print('           dim: {}'.format(len(structure)))
-            print('           [{:15} / {:15} / {:15}]'.format(structure[0], structure[1], structure[2]))
-            print('           [{:15} / {:15} / {:15}]'.format(str(np_array[0][0].get(structure[0]).shape),
-                                                              str(np_array[0][0].get(structure[1]).shape),
-                                                              str(np_array[0][0].get(structure[2]).shape)))
-            print('           [{:15} / {:15} / {:15}]'.format(type(np_array[0][0].get(structure[0])).__name__,
-                                                              type(np_array[0][0].get(structure[1])).__name__,
-                                                              type(np_array[0][0].get(structure[2])).__name__))
+            if type(np_array[0][0]) is dict:
+                structure = list(np_array[0][0].keys())
+                print('   ---> {} batches'.format(np.shape(np_array)[0]))
+                print('   ---> {} dim'.format(np_array.ndim))
+                print('        label')
+                print('           shape: {}'.format(np_array[0][1].shape))
+                print('        dict structure')
+                print('           dim: {}'.format(len(structure)))
+                print('           [{:15} / {:15} / {:15}]'.format(structure[0], structure[1], structure[2]))
+                print('           [{:15} / {:15} / {:15}]'.format(str(np_array[0][0].get(structure[0]).shape),
+                                                                  str(np_array[0][0].get(structure[1]).shape),
+                                                                  str(np_array[0][0].get(structure[2]).shape)))
+                print('           [{:15} / {:15} / {:15}]'.format(type(np_array[0][0].get(structure[0])).__name__,
+                                                                  type(np_array[0][0].get(structure[1])).__name__,
+                                                                  type(np_array[0][0].get(structure[2])).__name__))
+            else:
+                print('   ---> {} entries'.format(np.shape(np_array)[0]))
+                print('   ---> {} dim'.format(np_array.ndim))
+                print('           [{:15} / {:15} ]'.format('text', 'label'))
+                print('           [{:15} / {:15} ]'.format(str(np_array[0][0].shape), str(np_array[0][1].shape)))
+                print('           [{:15} / {:15} ]'.format(str(np_array[0][0].dtype), str(np_array[0][1].dtype)))
 
     if print_example:
         print('\n\n# Examples of data:')
