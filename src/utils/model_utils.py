@@ -2,9 +2,11 @@ import os
 import datetime
 #import joblib
 from sklearn.externals import joblib
+import numpy as np
 import re
 from google.cloud import storage
 import tensorflow as tf
+from tensorboard.backend.event_processing import event_accumulator
 
 def save_model(estimator, gcspath, name):
     
@@ -100,3 +102,16 @@ class History_per_steps_trained_model(object):
         self.val_steps = val_steps
         self.val_losses = val_losses
         self.val_accuracies = val_accuracies
+
+def load_data_tensorboard(path):
+    event_acc = event_accumulator.EventAccumulator(path)
+    event_acc.Reload()
+    data = {}
+
+    for tag in sorted(event_acc.Tags()["scalars"]):
+        x, y = [], []
+        for scalar_event in event_acc.Scalars(tag):
+            x.append(scalar_event.step)
+            y.append(scalar_event.value)
+        data[tag] = (np.asarray(x), np.asarray(y))
+    return data
