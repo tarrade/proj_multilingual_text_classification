@@ -69,3 +69,4 @@ dependencies:
   - tfx==0.21.2
   # gcp client libraries
   - google-resumable-media==0.5.0
+  - google-cloud-translate==2.0.1
