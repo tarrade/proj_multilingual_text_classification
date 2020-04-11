@@ -48,7 +48,8 @@ dependencies:
   # machine learning
   - xgboost==1.0.1
   - tensorflow==2.1.0 # for Mac only
-  - tensorboard_plugin_profile==2.2.0rc0
+  - tensorboard==2.2.0
+  - tensorboard_plugin_profile==2.2.0
   - grpcio==1.24.3 # needed for Mac only ?
   - tensorflow-hub==0.7.0
   - tensorflow-datasets==2.1.0
