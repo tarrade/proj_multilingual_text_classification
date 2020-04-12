@@ -253,3 +253,27 @@ def write_tf_data_into_tfrecord(data, file_name):
     filename = file_name + '.tfrecord'
     writer = tf.data.experimental.TFRecordWriter(filename)
     writer.write(serialized_features_dataset)
+
+def parse_tfrecord_glue_files(record):
+    # The tensors you pull into the model MUST have the same name
+    # as what was encoded in the TFRecord
+
+    # FixedLenFeature means that you know the number of tensors associated
+    # with each label and example.
+
+    # For example, there will only be 1 review per example, and as
+    # a result, sentence is a FixedLenFeature.
+    features_spec = {
+        'input_ids': tf.io.FixedLenFeature([], tf.string, default_value=''),
+        'attention_mask': tf.io.FixedLenFeature([], tf.string, default_value=''),
+        'token_type_ids': tf.io.FixedLenFeature([], tf.string, default_value=''),
+        'label': tf.io.FixedLenFeature([], tf.int64, default_value=0)
+    }
+
+    # tr_parse_ds = tr_ds.map(parse_example)
+    example = tf.io.parse_single_example(record, features_spec)
+
+    f0 = tf.io.parse_tensor(example['input_ids'], out_type=tf.int32)
+    f1 = tf.io.parse_tensor(example['attention_mask'], out_type=tf.int32)
+    f2 = tf.io.parse_tensor(example['token_type_ids'], out_type=tf.int32)
+    return {'input_ids': f0, 'attention_mask': f1, 'token_type_ids': f2}, example['label']
