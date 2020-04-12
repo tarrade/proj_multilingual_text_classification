@@ -202,5 +202,54 @@ def feature_selection(feature, label):
     print('feature:',feature['input_ids'],'label:',label)
     return feature['input_ids'], label
 
+
 def label_extraction(feature, label):
     return label
+
+
+def _bytes_feature(value):
+  """Returns a bytes_list from a string / byte."""
+  if isinstance(value, type(tf.constant(0))):
+    value = value.numpy() # BytesList won't unpack a string from an EagerTensor.
+  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+
+def _float_feature(value):
+  """Returns a float_list from a float / double."""
+  return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+
+
+def _int64_feature(value):
+  """Returns an int64_list from a bool / enum / int / uint."""
+  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+
+def serialize_example(features, label):
+    """
+    Creates a tf.Example message ready to be written to a file.
+    """
+    # Create a dictionary mapping the feature name to the tf.Example-compatible
+    # data type.
+
+    feature = {
+        'input_ids': _bytes_feature(tf.io.serialize_tensor(features['input_ids'])),
+        'attention_mask': _bytes_feature(tf.io.serialize_tensor(features['attention_mask'])),
+        'token_type_ids': _bytes_feature(tf.io.serialize_tensor(features['token_type_ids'])),
+        'label': tf.train.Feature(int64_list=tf.train.Int64List(value=[label])),
+    }
+
+    # Create a Features message using tf.train.Example.
+    example_proto = tf.train.Example(features=tf.train.Features(feature=feature))
+
+    return example_proto.SerializeToString()
+
+def generator(data):
+    for features in data:
+        yield serialize_example(*features)
+
+def write_tf_data_into_tfrecord(data, file_name):
+    serialized_features_dataset = tf.data.Dataset.from_generator(lambda: generator(data), output_types=tf.string, output_shapes=())
+
+    filename = file_name + '.tfrecord'
+    writer = tf.data.experimental.TFRecordWriter(filename)
+    writer.write(serialized_features_dataset)
