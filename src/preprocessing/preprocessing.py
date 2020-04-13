@@ -80,16 +80,26 @@ def print_info_data(dataset, print_example=True, n_example=3):
 # print details on one example of the tokenize data
 def print_detail_tokeniser(dataset, tokenizer, max_entries=20):
     np_array = np.array(list(dataset.take(1).as_numpy_iterator()))
-    print('{:>10}     ---->    {:^15}   {:^15}   {:<30}\n'.format('input_ids', 'attention_mask', 'token_type_ids',
+    if len(np_array[0][0]['input_ids'].shape)==2:
+        print('{:>10}     ---->    {:^15}   {:^15}   {:<30}\n'.format('input_ids', 'attention_mask', 'token_type_ids',
                                                                   'modified text'))
-    for i, v in enumerate(np_array[0][0]['input_ids'][0]):
-        print('{:>10}     ---->    {:^15d}   {:^15d}   {:<30}'.format(v,
-                                                                      int(np_array[0][0]['attention_mask'][0][i]),
-                                                                      int(np_array[0][0]['attention_mask'][0][i]),
-                                                                      tokenizer.decode(int(v))))
-        if i > max_entries:
-            break
-
+        for i, v in enumerate(np_array[0][0]['input_ids'][0]):
+            print('{:>10}     ---->    {:^15d}   {:^15d}   {:<30}'.format(v,
+                                                                          int(np_array[0][0]['attention_mask'][0][i]),
+                                                                          int(np_array[0][0]['attention_mask'][0][i]),
+                                                                          tokenizer.decode(int(v))))
+            if i > max_entries:
+                break
+    elif len(np_array[0][0]['input_ids'].shape) == 1:
+        print('{:>10}     ---->    {:^15}   {:^15}   {:<30}\n'.format('input_ids', 'attention_mask', 'token_type_ids',
+                                                                        'modified text'))
+        for i, v in enumerate(np_array[0][0]['input_ids']):
+            print('{:>10}     ---->    {:^15d}   {:^15d}   {:<30}'.format(v,
+                                                                          int(np_array[0][0]['attention_mask'][i]),
+                                                                          int(np_array[0][0]['attention_mask'][i]),
+                                                                          tokenizer.decode(int(v))))
+            if i > max_entries:
+                break
 # create a data structure
 class InputFeatures(object):
     def __init__(self, idx, label,sentence):
