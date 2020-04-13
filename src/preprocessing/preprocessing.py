@@ -258,7 +258,9 @@ def generator(data):
         yield serialize_example(*features)
 
 def write_tf_data_into_tfrecord(data, file_name):
-    serialized_features_dataset = tf.data.Dataset.from_generator(lambda: generator(data), output_types=tf.string, output_shapes=())
+    serialized_features_dataset = tf.data.Dataset.from_generator(lambda: generator(data),
+                                                                 output_types=tf.string,
+                                                                 output_shapes=())
 
     filename = file_name + '.tfrecord'
     writer = tf.data.experimental.TFRecordWriter(filename)
@@ -283,7 +285,7 @@ def parse_tfrecord_glue_files(record):
     # tr_parse_ds = tr_ds.map(parse_example)
     example = tf.io.parse_single_example(record, features_spec)
 
-    f0 = tf.io.parse_tensor(example['input_ids'], out_type=tf.int32)
-    f1 = tf.io.parse_tensor(example['attention_mask'], out_type=tf.int32)
-    f2 = tf.io.parse_tensor(example['token_type_ids'], out_type=tf.int32)
+    f0 = tf.ensure_shape(tf.io.parse_tensor(example['input_ids'], out_type=tf.int32), (None,))
+    f1 = tf.ensure_shape(tf.io.parse_tensor(example['attention_mask'], out_type=tf.int32), (None,))
+    f2 = tf.ensure_shape(tf.io.parse_tensor(example['token_type_ids'], out_type=tf.int32), (None,))
     return {'input_ids': f0, 'attention_mask': f1, 'token_type_ids': f2}, example['label']
