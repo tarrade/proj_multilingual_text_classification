@@ -4,9 +4,11 @@ import datetime
 from sklearn.externals import joblib
 import numpy as np
 import re
+import os
 from google.cloud import storage
 import tensorflow as tf
 from tensorboard.backend.event_processing import event_accumulator
+from google.cloud import storage
 
 def save_model(estimator, gcspath, name):
     
@@ -115,3 +117,18 @@ def load_data_tensorboard(path):
             y.append(scalar_event.value)
         data[tag] = (np.asarray(x), np.asarray(y))
     return data
+
+def copy_local_directory_to_gcs(local_path, bucket, gcs_path):
+    """Recursively copy a directory of files to GCS.
+
+    local_path should be a directory and not have a trailing slash.
+    """
+    assert os.path.isdir(local_path)
+    for root, dirs, files in os.walk(local_path):
+        for name in files:
+            local_file = os.path.join(root, name)
+            remote_path = os.path.join(gcs_path, local_file[1 + len(local_path) :])
+            print(remote_path)
+            blob = bucket.blob(remote_path)
+            blob.upload_from_filename(local_file)
+            print('copy of the file on gs:// done !')

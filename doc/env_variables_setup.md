@@ -5,8 +5,11 @@ Environment variables that need to be defined:
 `export PATH_DATASETS=your_path_datasets`  
 `export PROJECT_ID=your_gcp_project_id`  
 `export BUCKET_NAME=your_gcp_gs_bucket_name`  
+`export BUCKET_TRANSLATION_NAME=your_gcp_gs_bucket_translation_name`
 `export REGION=your_region`  
 `export PATH_SAVE_MODEL=your_path_to_save_model` 
+`export CLOUDSDK_PYTHON=your_path/conda-env/env_gcp_sdk/bin/python`
+`export CLOUDSDK_GSUTIL_PYTHON=your_path/conda-env/env_gcp_sdk/bin/python`
 
 - Use local Jupyter Lab 
     - you need to have the `jupyter-notebook` Anaconda python environment created [link](local_jupyter_lab_installation.md) 
