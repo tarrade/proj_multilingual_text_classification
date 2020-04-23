@@ -38,3 +38,31 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
                   metrics=[metric])
 
     return model
+
+
+def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir):
+    """Compiles keras model and loads data into it for training."""
+
+    model_callbacks = []
+    if output_dir:
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=output_dir,
+                                                              histogram_freq=1,
+                                                              embeddings_freq=1,
+                                                              write_graph=True,
+                                                              update_freq='batch',
+                                                              profile_batch=1)
+        model_callbacks.append(tensorboard_callback)
+
+    # train the model
+    history = model.fit(train_data,
+                        epochs=num_epochs,
+                        steps_per_epoch=steps_per_epoch,
+                        validation_data=eval_data,
+                        validation_steps=validation_steps,
+                        callbacks=model_callbacks)
+
+    #if output_dir:
+    #    export_path = os.path.join(output_dir, 'keras_export')
+    #    model.save(export_path, save_format='tf')
+
+    return history

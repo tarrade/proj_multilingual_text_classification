@@ -1,85 +1,95 @@
 import argparse
-import hypertune
+import sys
 
-import model.sklearn_naive_bayes.model as model
-import utils.model_utils as model_utils
+import tensorflow as tf
 
-if __name__ == '__main__':
+def _parse_arguments(argv):
+    """Parses command-line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--eval_size',
-        help = 'Size for the evaluation set in %',
-        type = float,
-        default=20.
-    )
+        '--epochs',
+        help='The number of epochs to train',
+        type=int, default=5)
     parser.add_argument(
-        '--frac',
-        help = 'Fraction of input to process',
-        type = float,
-        default=0.0001
-    )
+        '--steps_per_epoch',
+        help='The number of steps per epoch to train',
+        type=int, default=500)
     parser.add_argument(
-        '--max_nb_label',
-        help = 'Maximum number of labels',
-        type = int,
-        default=1000
-    )
+        '--train_path',
+        help='The path to the training data',
+        type=str, default="gs://cloud-ml-data/img/flower_photos/train_set.csv")
     parser.add_argument(
-        '--WE_max_df',
-        help='Document frequency strictly higher than the given threshold',
-        type=float,
-        default=1.0
-    )
+        '--eval_path',
+        help='The path to the evaluation data',
+        type=str, default="gs://cloud-ml-data/img/flower_photos/eval_set.csv")
     parser.add_argument(
-        '--WE_min_df',
-        help='Document frequency strictly lower than the given threshold',
-        type=float,
-        default=1
-    )        
+        '--tpu_address',
+        help='The path to the evaluation data',
+        type=str, required=True)
     parser.add_argument(
-        '--FT_norm',
-        help='Unit norm',
-        type=str,
-        default='l2'       
-    )
-    parser.add_argument(
-        '--M_alpha',
-        help='Additive smoothing parameter',
-        type=float,
-        default=1.0       
-    )    
-    parser.add_argument(
-        '--project_id',
-        help='ID (not name) of your project',
-        required=True
-    )
+        '--hub_path',
+        help='The path to TF Hub module to use in GCS',
+        type=str, required=True)
     parser.add_argument(
         '--job-dir',
-        help='Output directory for model, automatically provided by gcloud',
-        required=True
-    )
-    
-    args = parser.parse_args()
-    arguments = args.__dict__
-    
-    print(arguments)
-    
-    estimator, acc_eval = model.train_and_evaluate(arguments['eval_size'],
-                                                   arguments['frac'],
-                                                   arguments['WE_max_df'],
-                                                   arguments['WE_min_df'],
-                                                   arguments['FT_norm'],
-                                                   arguments['M_alpha'],
-                                                   arguments['max_nb_label'])
-    
-    if estimator is not None:
-        loc = model_utils.save_model(estimator, 
-                               arguments['job_dir'], 'stackoverlow')
-        print("Saved model to {}".format(loc))
-    
-    # this is for hyperparameter tuning
-    hpt = hypertune.HyperTune()
-    hpt.report_hyperparameter_tuning_metric(
-        hyperparameter_metric_tag='accuracy',
-        metric_value=acc_eval,
-        global_step=0)
+        help='Directory where to save the given model',
+        type=str, required=True)
+    return parser.parse_known_args(argv)
+
+
+def main():
+    """Parses command line arguments and kicks off model training."""
+
+    MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased'),
+              (TFXLMRobertaModel, XLMRobertaTokenizer, 'jplu/tf-xlm-roberta-base')]
+    model_index = 0  # BERT
+    model_class = MODELS[model_index][0]  # i.e TFBertModel
+    tokenizer_class = MODELS[model_index][1]  # i.e BertTokenizer
+    pretrained_weights = MODELS[model_index][2]  # 'i.e bert-base-multilingual-uncased'
+
+    # Maxium length, becarefull BERT max length is 512!
+    MAX_LENGTH = 128
+
+    # define parameters
+    BATCH_SIZE_TRAIN = 32
+    BATCH_SIZE_TEST = 32
+    BATCH_SIZE_VALID = 64
+    EPOCH = 2
+
+    # extract parameters
+    if tf.version.VERSION[0:5] == '2.2.0':
+        size_train_dataset = tf.data.experimental.cardinality(train_dataset)
+        size_test_dataset = tf.data.experimental.cardinality(test_dataset)
+        size_valid_dataset = tf.data.experimental.cardinality(valid_dataset)
+    else:
+        size_train_dataset = train_dataset.reduce(0, lambda x, _: x + 1).numpy()
+        size_test_dataset = test_dataset.reduce(0, lambda x, _: x + 1).numpy()
+        size_valid_dataset = valid_dataset.reduce(0, lambda x, _: x + 1).numpy()
+    number_label = 2
+
+    # computer parameter
+    STEP_EPOCH_TRAIN = math.ceil(size_train_dataset / BATCH_SIZE_TRAIN)
+    STEP_EPOCH_TEST = math.ceil(size_test_dataset / BATCH_SIZE_TEST)
+    STEP_EPOCH_VALID = math.ceil(size_test_dataset / BATCH_SIZE_VALID)
+
+
+    args = _parse_arguments(sys.argv[1:])[0]
+
+    strategy = tf.distribute.MirroredStrategy()
+    print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+
+    # create and compile the Keras model in the context of strategy.scope
+    with strategy.scope():
+        model = tf_bert.create_model(pretrained_weights,
+                                     pretrained_model_dir=pretrained_model_dir,
+                                     num_labels=number_label,
+                                     learning_rate=3e-5,
+                                     epsilon=1e-08)
+
+    model_history = model.train_and_evaluate(
+        image_model, args.epochs, args.steps_per_epoch,
+        train_data, eval_data, args.job_dir)
+
+
+if __name__ == '__main__':
+    main()
