@@ -1,79 +1,65 @@
 import argparse
 import sys
-
+from absl import logging
+from absl import flags
+from absl import app
 import tensorflow as tf
+from transformers import (
+    BertTokenizer,
+    TFBertModel,
+    glue_convert_examples_to_features,
+)
+import preprocessing.preprocessing as pp
+import model.tf_bert_classification.model as tf_bert
 
-def _parse_arguments(argv):
-    """Parses command-line arguments."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--epochs',
-        help='The number of epochs to train',
-        type=int, default=5)
-    parser.add_argument(
-        '--steps_per_epoch',
-        help='The number of steps per epoch to train',
-        type=int, default=500)
-    parser.add_argument(
-        '--train_path',
-        help='The path to the training data',
-        type=str, default="gs://cloud-ml-data/img/flower_photos/train_set.csv")
-    parser.add_argument(
-        '--eval_path',
-        help='The path to the evaluation data',
-        type=str, default="gs://cloud-ml-data/img/flower_photos/eval_set.csv")
-    parser.add_argument(
-        '--tpu_address',
-        help='The path to the evaluation data',
-        type=str, required=True)
-    parser.add_argument(
-        '--hub_path',
-        help='The path to TF Hub module to use in GCS',
-        type=str, required=True)
-    parser.add_argument(
-        '--job-dir',
-        help='Directory where to save the given model',
-        type=str, required=True)
-    return parser.parse_known_args(argv)
+FLAGS = flags.FLAGS
 
+# Maximum length, becareful BERT max length is 512!
+MAX_LENGTH = 128
 
-def main():
-    """Parses command line arguments and kicks off model training."""
+# define default parameters
+BATCH_SIZE_TRAIN = 32
+BATCH_SIZE_TEST = 32
+BATCH_SIZE_VALID = 64
+EPOCHS = 1
+STEP_EPOCH_TRAIN = 10
+STEP_EPOCH_VALID = 1
 
-    MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased'),
-              (TFXLMRobertaModel, XLMRobertaTokenizer, 'jplu/tf-xlm-roberta-base')]
+# number of classes
+NUM_CLASSES =2
+
+# parameters for the training
+flags.DEFINE_string('input_train_tfrecords', '', 'input folder of tfrecords training data')
+flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evaluation data')
+flags.DEFINE_integer('epochs', EPOCHS, 'The number of epochs to train')
+flags.DEFINE_integer('steps_per_epoch_train', STEP_EPOCH_TRAIN, 'The number of steps per epoch to train')
+flags.DEFINE_integer('batch_size_train', BATCH_SIZE_TRAIN, 'Batch size for training')
+flags.DEFINE_integer('steps_per_epoch_eval', STEP_EPOCH_TRAIN, 'The number of steps per epoch to evaluate')
+flags.DEFINE_integer('batch_size_eval', BATCH_SIZE_TRAIN, 'Batch size for evaluation')
+flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model')
+flags.DEFINE_string('output_dir', '', 'number of classes in our model')
+flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
+
+def main(argv):
+
+    # choose language's model and tokenizer
+    MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased')]
     model_index = 0  # BERT
     model_class = MODELS[model_index][0]  # i.e TFBertModel
     tokenizer_class = MODELS[model_index][1]  # i.e BertTokenizer
     pretrained_weights = MODELS[model_index][2]  # 'i.e bert-base-multilingual-uncased'
 
-    # Maxium length, becarefull BERT max length is 512!
-    MAX_LENGTH = 128
+    # read TFRecords files
+    train_files = tf.data.TFRecordDataset(FLAGS.input_train_tfrecords + '/train_dataset.tfrecord')
+    valid_files = tf.data.TFRecordDataset(FLAGS.input_eval_tfrecords + '/valid_dataset.tfrecord')
 
-    # define parameters
-    BATCH_SIZE_TRAIN = 32
-    BATCH_SIZE_TEST = 32
-    BATCH_SIZE_VALID = 64
-    EPOCH = 2
+    train_dataset = train_files.map(pp.parse_tfrecord_glue_files)
+    valid_dataset = valid_files.map(pp.parse_tfrecord_glue_files)
 
-    # extract parameters
-    if tf.version.VERSION[0:5] == '2.2.0':
-        size_train_dataset = tf.data.experimental.cardinality(train_dataset)
-        size_test_dataset = tf.data.experimental.cardinality(test_dataset)
-        size_valid_dataset = tf.data.experimental.cardinality(valid_dataset)
-    else:
-        size_train_dataset = train_dataset.reduce(0, lambda x, _: x + 1).numpy()
-        size_test_dataset = test_dataset.reduce(0, lambda x, _: x + 1).numpy()
-        size_valid_dataset = valid_dataset.reduce(0, lambda x, _: x + 1).numpy()
-    number_label = 2
+    # set shuffle and batch size
+    train_dataset = train_dataset.shuffle(100).batch(FLAGS.batch_size_train).repeat(FLAGS.epochs + 1)
+    valid_dataset = valid_dataset.batch(FLAGS.batch_size_eval)
 
-    # computer parameter
-    STEP_EPOCH_TRAIN = math.ceil(size_train_dataset / BATCH_SIZE_TRAIN)
-    STEP_EPOCH_TEST = math.ceil(size_test_dataset / BATCH_SIZE_TEST)
-    STEP_EPOCH_VALID = math.ceil(size_test_dataset / BATCH_SIZE_VALID)
-
-
-    args = _parse_arguments(sys.argv[1:])[0]
 
     strategy = tf.distribute.MirroredStrategy()
     print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
@@ -81,15 +67,18 @@ def main():
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
         model = tf_bert.create_model(pretrained_weights,
-                                     pretrained_model_dir=pretrained_model_dir,
-                                     num_labels=number_label,
+                                     pretrained_model_dir=FLAGS.pretrained_model_dir,
+                                     num_labels=FLAGS.num_classes,
                                      learning_rate=3e-5,
                                      epsilon=1e-08)
 
-    model_history = model.train_and_evaluate(
-        image_model, args.epochs, args.steps_per_epoch,
-        train_data, eval_data, args.job_dir)
-
+    model_history = tf_bert.train_and_evaluate(model,
+                                               num_epochs=FLAGS.epochs,
+                                               steps_per_epoch=FLAGS.steps_per_epoch_train,
+                                               train_data=train_dataset,
+                                               validation_steps=FLAGS.steps_per_epoch_eval,
+                                               eval_data=valid_dataset,
+                                               output_dir=FLAGS.output_dir)
 
 if __name__ == '__main__':
-    main()
+    app.run(main)
