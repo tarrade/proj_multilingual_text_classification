@@ -1,8 +1,7 @@
 from setuptools import find_packages
 from setuptools import setup
 
-REQUIRED_PACKAGES = ['scikit-learn==0.20.2',
-                     'numpy==1.17.2',
+REQUIRED_PACKAGES = ['transformers==2.8.0',
                      'google-cloud-bigquery==1.22.0',
                      'google-cloud-dns==0.31.0',
                      'google-cloud-resource-manager==0.30.0',
@@ -32,5 +31,5 @@ setup(
     install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
     include_package_data=True,
-    description='Classification of Stackoverflow post using scikit-learn on GCP'
+    description='Classification of text using BERT'
 )

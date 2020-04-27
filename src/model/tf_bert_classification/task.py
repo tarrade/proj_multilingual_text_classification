@@ -38,6 +38,7 @@ flags.DEFINE_integer('steps_per_epoch_eval', STEP_EPOCH_TRAIN, 'The number of st
 flags.DEFINE_integer('batch_size_eval', BATCH_SIZE_TRAIN, 'Batch size for evaluation')
 flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model')
 flags.DEFINE_string('output_dir', '', 'number of classes in our model')
+flags.DEFINE_string('job-dir', '', 'number of classes in our model')
 flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
 
 def main(argv):
