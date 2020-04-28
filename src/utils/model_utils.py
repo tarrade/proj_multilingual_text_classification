@@ -132,3 +132,22 @@ def copy_local_directory_to_gcs(local_path, bucket, gcs_path):
             blob = bucket.blob(remote_path)
             blob.upload_from_filename(local_file)
             print('copy of the file on gs:// done !')
+
+def download_blob(bucket_name, source_blob_name, destination_file_name):
+    """Downloads a blob from the bucket."""
+    # bucket_name = "your-bucket-name"
+    # source_blob_name = "storage-object-name"
+    # destination_file_name = "local/path/to/file"
+
+    storage_client = storage.Client()
+
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+    blob.download_to_filename(destination_file_name)
+
+    for file in storage_client.list_blobs(bucket):
+        blob = bucket.blob([REMOTE PATH] / filename)
+        blob.upload_from_filename(filename)
+
+    print('Blob {} downloaded to {}.'.format(source_blob_name, destination_file_name)
+    )
