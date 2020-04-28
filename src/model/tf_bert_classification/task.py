@@ -40,8 +40,13 @@ flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model
 flags.DEFINE_string('output_dir', '', 'number of classes in our model')
 flags.DEFINE_string('job-dir', '', 'number of classes in our model')
 flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
+flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'ERROR', 'FATAL', 'INFO', 'WARN'], 'verbosity in the logfile')
+
 
 def main(argv):
+
+    # set level of verbosity
+    logging.set_verbosity(FLAGS.verbosity)
 
     # choose language's model and tokenizer
     MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased')]
@@ -61,6 +66,8 @@ def main(argv):
     train_dataset = train_dataset.shuffle(100).batch(FLAGS.batch_size_train).repeat(FLAGS.epochs + 1)
     valid_dataset = valid_dataset.batch(FLAGS.batch_size_eval)
 
+    # reset Keras
+    tf.keras.backend.clear_session()
 
     strategy = tf.distribute.MirroredStrategy()
     print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
