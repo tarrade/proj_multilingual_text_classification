@@ -3,6 +3,9 @@ from transformers import (
     TFBertForSequenceClassification,
 )
 
+# to be removed
+import glob
+
 def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
     """Creates Keras Model for BERT Classification.
     Args:
@@ -24,19 +27,19 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     # optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, epsilon=epsilon)
 
+    print('pretrained model\'s files: \n', glob.glob(pretrained_model_dir+"/*"))
 
     # create and compile the Keras model in the context of strategy.scope
     model= TFBertForSequenceClassification.from_pretrained(pretrained_weights,
                                                            num_labels=num_labels,
                                                            cache_dir=pretrained_model_dir)
-    # model.layers[-1].activation = tf.keras.activations.softmax
+    #model.layers[-1].activation = tf.keras.activations.softmax
     model._name = 'tf_bert_classification'
 
     # compile Keras model
     model.compile(optimizer=optimizer,
                   loss=loss,
                   metrics=[metric])
-
     return model
 
 

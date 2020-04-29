@@ -8,6 +8,7 @@ os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
 from absl import logging
 from absl import flags
 from absl import app
+import re
 import tensorflow as tf
 tf.get_logger().propagate = False
 from transformers import (
@@ -17,6 +18,7 @@ from transformers import (
 )
 import preprocessing.preprocessing as pp
 import model.tf_bert_classification.model as tf_bert
+import utils.model_utils as mu
 
 print(tf.__version__)
 print(tf.keras.__version__)
@@ -64,6 +66,23 @@ def main(argv):
     tokenizer_class = MODELS[model_index][1]  # i.e BertTokenizer
     pretrained_weights = MODELS[model_index][2]  # 'i.e bert-base-multilingual-uncased'
 
+    # download   pre trained model:
+    if FLAGS.pretrained_model_dir:
+        # download pre trained model from a bucket
+        print('downloading pretrained model!')
+        search = re.search('gs://(.*?)/(.*)', FLAGS.pretrained_model_dir)
+        if search is not None:
+            bucket_name = search.group(1)
+            blob_name = search.group(2)
+            local_path='.'
+            mu.download_blob(bucket_name, blob_name, local_path)
+            pretrained_model_dir = local_path+'/'+blob_name
+        else:
+            pretrained_model_dir = FLAGS.pretrained_model_dir
+    else:
+        # download pre trained model from internet
+        pretrained_model_dir = '.'
+
     # read TFRecords files
     train_files = tf.data.TFRecordDataset(FLAGS.input_train_tfrecords + '/train_dataset.tfrecord')
     valid_files = tf.data.TFRecordDataset(FLAGS.input_eval_tfrecords + '/valid_dataset.tfrecord')
@@ -83,8 +102,9 @@ def main(argv):
 
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
+        print('pretrained_model_dir=',pretrained_model_dir)
         model = tf_bert.create_model(pretrained_weights,
-                                     pretrained_model_dir=FLAGS.pretrained_model_dir,
+                                     pretrained_model_dir=pretrained_model_dir,
                                      num_labels=FLAGS.num_classes,
                                      learning_rate=3e-5,
                                      epsilon=1e-08)
