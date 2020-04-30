@@ -2,8 +2,7 @@ import tensorflow as tf
 from transformers import (
     TFBertForSequenceClassification,
 )
-
-# to be removed
+import os
 import glob
 
 def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
@@ -48,7 +47,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     model_callbacks = []
     if output_dir:
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=output_dir,
+        log_dir = os.path.join(output_dir, 'tensorboard')
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
                                                               histogram_freq=1,
                                                               embeddings_freq=1,
                                                               write_graph=True,
@@ -64,8 +64,9 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                         validation_steps=validation_steps,
                         callbacks=model_callbacks)
 
-    #if output_dir:
-    #    export_path = os.path.join(output_dir, 'keras_export')
-    #    model.save(export_path, save_format='tf')
+    if output_dir:
+        # save the model
+        savemodel_path = os.path.join(output_dir, 'saved_model')
+        model.save(os.path.join(savemodel_path,model.name))
 
     return history
