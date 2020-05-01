@@ -35,17 +35,26 @@ EPOCHS = 1
 STEP_EPOCH_TRAIN = 10
 STEP_EPOCH_VALID = 1
 
+# hyper parameter
+learning_rate=3e-5
+epsilon=1e-08
+
 # number of classes
 NUM_CLASSES =2
 
+# config
+n_steps_history=10
+
 # parameters for the training
+flags.DEFINE_float('learning_rate', learning_rate, 'learning rate')
+flags.DEFINE_float('epsilon', epsilon, 'epsilon')
 flags.DEFINE_integer('epochs', EPOCHS, 'The number of epochs to train')
 flags.DEFINE_integer('steps_per_epoch_train', STEP_EPOCH_TRAIN, 'The number of steps per epoch to train')
 flags.DEFINE_integer('batch_size_train', BATCH_SIZE_TRAIN, 'Batch size for training')
 flags.DEFINE_integer('steps_per_epoch_eval', STEP_EPOCH_VALID, 'The number of steps per epoch to evaluate')
 flags.DEFINE_integer('batch_size_eval', BATCH_SIZE_VALID, 'Batch size for evaluation')
 flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model')
-flags.DEFINE_integer('n_steps_history', 10, 'number of step for which we want custom history')
+flags.DEFINE_integer('n_steps_history', n_steps_history, 'number of step for which we want custom history')
 flags.DEFINE_string('input_train_tfrecords', '', 'input folder of tfrecords training data')
 flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evaluation data')
 flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output of the model')
@@ -107,8 +116,8 @@ def main(argv):
         model = tf_bert.create_model(pretrained_weights,
                                      pretrained_model_dir=pretrained_model_dir,
                                      num_labels=FLAGS.num_classes,
-                                     learning_rate=3e-5,
-                                     epsilon=1e-08)
+                                     learning_rate=FLAGS.learning_rate,
+                                     epsilon=FLAGS.epsilon)
 
         tf_bert.train_and_evaluate(model,
                                    num_epochs=FLAGS.epochs,

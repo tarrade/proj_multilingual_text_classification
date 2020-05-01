@@ -50,8 +50,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     model_callbacks = []
 
-    # tensorflow callback
     if output_dir:
+        # tensorflow callback
         log_dir = os.path.join(output_dir, 'tensorboard')
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
                                                               histogram_freq=1,
@@ -60,6 +60,14 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                                                               update_freq='batch',
                                                               profile_batch=1)
         model_callbacks.append(tensorboard_callback)
+
+        # checkpoints callback
+        checkpoint_dir = os.path.join(output_dir, 'checkpoint_model')
+        checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt_{epoch:02d}')
+        checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
+                                                                 verbose=1,
+                                                                 save_weights_only=True)
+        model_callbacks.append(checkpoint_callback)
 
     # callback to create  history per step (not per epoch)
     histories_per_step = mu.History_per_step(eval_data, n_steps_history)
