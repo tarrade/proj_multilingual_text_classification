@@ -69,6 +69,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                                                                  save_weights_only=True)
         model_callbacks.append(checkpoint_callback)
 
+        # decay learning rate callback
+        #decay_callback = tf.keras.callbacks.LearningRateScheduler(mu.decay)
+        #model_callbacks.append(decay_callback)
+
     # callback to create  history per step (not per epoch)
     histories_per_step = mu.History_per_step(eval_data, n_steps_history)
     model_callbacks.append(histories_per_step)
