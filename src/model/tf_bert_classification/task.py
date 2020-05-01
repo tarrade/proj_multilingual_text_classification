@@ -61,8 +61,8 @@ flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output o
 flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
 flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
 
-print(list(FLAGS))
-#print('Flags: \n',  FLAGS)
+logging.info(list(FLAGS))
+logging.debug('Flags: \n',  FLAGS)
 
 def main(argv):
 
@@ -79,7 +79,7 @@ def main(argv):
     # download   pre trained model:
     if FLAGS.pretrained_model_dir:
         # download pre trained model from a bucket
-        print('downloading pretrained model!')
+        logging.info('downloading pretrained model!')
         search = re.search('gs://(.*?)/(.*)', FLAGS.pretrained_model_dir)
         if search is not None:
             bucket_name = search.group(1)
@@ -108,11 +108,11 @@ def main(argv):
     tf.keras.backend.clear_session()
 
     strategy = tf.distribute.MirroredStrategy()
-    print('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+    logging.info('Number of devices: {}'.format(strategy.num_replicas_in_sync))
 
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
-        print('pretrained_model_dir=',pretrained_model_dir)
+        logging.debug('pretrained_model_dir=',pretrained_model_dir)
         model = tf_bert.create_model(pretrained_weights,
                                      pretrained_model_dir=pretrained_model_dir,
                                      num_labels=FLAGS.num_classes,

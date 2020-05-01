@@ -7,6 +7,7 @@ import os
 import glob
 import re
 import pickle
+from absl import logging
 
 def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
     """Creates Keras Model for BERT Classification.
@@ -29,7 +30,7 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     # optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, epsilon=epsilon)
 
-    print('pretrained model\'s files: \n', glob.glob(pretrained_model_dir+"/*"))
+    logging.debug('pretrained model\'s files: \n', glob.glob(pretrained_model_dir+"/*"))
 
     # create and compile the Keras model in the context of strategy.scope
     model= TFBertForSequenceClassification.from_pretrained(pretrained_weights,
