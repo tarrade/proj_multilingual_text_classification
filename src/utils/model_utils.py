@@ -118,12 +118,16 @@ def load_data_tensorboard(path):
         data[tag] = (np.asarray(x), np.asarray(y))
     return data
 
-def copy_local_directory_to_gcs(local_path, bucket, gcs_path):
+def copy_local_directory_to_gcs(local_path, bucket_name, gcs_path):
     """Recursively copy a directory of files to GCS.
 
     local_path should be a directory and not have a trailing slash.
     """
     assert os.path.isdir(local_path)
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+
     for root, dirs, files in os.walk(local_path):
         for name in files:
             local_file = os.path.join(root, name)

@@ -2,8 +2,11 @@ import tensorflow as tf
 from transformers import (
     TFBertForSequenceClassification,
 )
+import utils.model_utils as mu
 import os
 import glob
+import re
+import pickle
 
 def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
     """Creates Keras Model for BERT Classification.
@@ -42,10 +45,12 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     return model
 
 
-def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir):
+def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history):
     """Compiles keras model and loads data into it for training."""
 
     model_callbacks = []
+
+    # tensorflow callback
     if output_dir:
         log_dir = os.path.join(output_dir, 'tensorboard')
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
@@ -56,6 +61,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                                                               profile_batch=1)
         model_callbacks.append(tensorboard_callback)
 
+    # callback to create  history per step (not per epoch)
+    histories_per_step = mu.History_per_step(eval_data, n_steps_history)
+    model_callbacks.append(histories_per_step)
+
     # train the model
     history = model.fit(train_data,
                         epochs=num_epochs,
@@ -64,9 +73,31 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                         validation_steps=validation_steps,
                         callbacks=model_callbacks)
 
+    # save the history in a file
+    history_dir = os.path.join('./', model.name)
+    os.makedirs(history_dir, exist_ok=True)
+    with open(history_dir + '/history', 'wb') as file:
+        model_history = mu.History_trained_model(history.history, history.epoch, history.params)
+        pickle.dump(model_history, file, pickle.HIGHEST_PROTOCOL)
+
+    with open(history_dir + '/history_per_step', 'wb') as file:
+        model_history_per_step = mu.History_per_steps_trained_model(histories_per_step.steps,
+                                                                    histories_per_step.losses,
+                                                                    histories_per_step.accuracies,
+                                                                    histories_per_step.val_steps,
+                                                                    histories_per_step.val_losses,
+                                                                    histories_per_step.val_accuracies)
+        pickle.dump(model_history_per_step, file, pickle.HIGHEST_PROTOCOL)
+
     if output_dir:
         # save the model
         savemodel_path = os.path.join(output_dir, 'saved_model')
-        model.save(os.path.join(savemodel_path,model.name))
+        model.save(os.path.join(savemodel_path, model.name))
 
-    return history
+        # save history
+        search = re.search('gs://(.*?)/(.*)', output_dir)
+        if search is not None:
+            bucket_name = search.group(1)
+            blob_name = search.group(2)
+            mu.copy_local_directory_to_gcs(history_dir, bucket_name, blob_name+'/history')
+

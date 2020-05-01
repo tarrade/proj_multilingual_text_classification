@@ -39,14 +39,15 @@ STEP_EPOCH_VALID = 1
 NUM_CLASSES =2
 
 # parameters for the training
-flags.DEFINE_string('input_train_tfrecords', '', 'input folder of tfrecords training data')
-flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evaluation data')
 flags.DEFINE_integer('epochs', EPOCHS, 'The number of epochs to train')
 flags.DEFINE_integer('steps_per_epoch_train', STEP_EPOCH_TRAIN, 'The number of steps per epoch to train')
 flags.DEFINE_integer('batch_size_train', BATCH_SIZE_TRAIN, 'Batch size for training')
 flags.DEFINE_integer('steps_per_epoch_eval', STEP_EPOCH_VALID, 'The number of steps per epoch to evaluate')
 flags.DEFINE_integer('batch_size_eval', BATCH_SIZE_VALID, 'Batch size for evaluation')
 flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model')
+flags.DEFINE_integer('n_steps_history', 10, 'number of step for which we want custom history')
+flags.DEFINE_string('input_train_tfrecords', '', 'input folder of tfrecords training data')
+flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evaluation data')
 flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output of the model')
 flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
 flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
@@ -109,13 +110,14 @@ def main(argv):
                                      learning_rate=3e-5,
                                      epsilon=1e-08)
 
-        model_history = tf_bert.train_and_evaluate(model,
-                                                   num_epochs=FLAGS.epochs,
-                                                   steps_per_epoch=FLAGS.steps_per_epoch_train,
-                                                   train_data=train_dataset,
-                                                   validation_steps=FLAGS.steps_per_epoch_eval,
-                                                   eval_data=valid_dataset,
-                                                   output_dir=FLAGS.output_dir)
+        tf_bert.train_and_evaluate(model,
+                                   num_epochs=FLAGS.epochs,
+                                   steps_per_epoch=FLAGS.steps_per_epoch_train,
+                                   train_data=train_dataset,
+                                   validation_steps=FLAGS.steps_per_epoch_eval,
+                                   eval_data=valid_dataset,
+                                   output_dir=FLAGS.output_dir,
+                                   n_steps_history=FLAGS.n_steps_history)
 
 if __name__ == '__main__':
     app.run(main)
