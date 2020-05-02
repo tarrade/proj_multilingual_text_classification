@@ -8,6 +8,7 @@ os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
 from absl import logging
 from absl import flags
 from absl import app
+import logging as logger
 import re
 import tensorflow as tf
 tf.get_logger().propagate = False
@@ -19,9 +20,6 @@ from transformers import (
 import preprocessing.preprocessing as pp
 import model.tf_bert_classification.model as tf_bert
 import utils.model_utils as mu
-
-print(tf.__version__)
-print(tf.keras.__version__)
 
 FLAGS = flags.FLAGS
 
@@ -61,13 +59,21 @@ flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output o
 flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
 flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
 
-logging.info(list(FLAGS))
-logging.debug('Flags: \n',  FLAGS)
-
 def main(argv):
+
+    tf.get_logger().propagate = False
+
+    fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
+    formatter = logger.Formatter(fmt)
+    logging.get_absl_handler().setFormatter(formatter)
 
     # set level of verbosity
     logging.set_verbosity(FLAGS.verbosity)
+
+    logging.info(tf.__version__)
+    logging.info(tf.keras.__version__)
+    logging.info(list(FLAGS))
+    logging.debug('Flags: \n {}'.format(FLAGS))
 
     # choose language's model and tokenizer
     MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased')]
@@ -112,7 +118,7 @@ def main(argv):
 
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
-        logging.debug('pretrained_model_dir=',pretrained_model_dir)
+        logging.debug('pretrained_model_dir={}'.format(pretrained_model_dir))
         model = tf_bert.create_model(pretrained_weights,
                                      pretrained_model_dir=pretrained_model_dir,
                                      num_labels=FLAGS.num_classes,

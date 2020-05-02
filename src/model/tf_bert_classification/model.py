@@ -30,7 +30,7 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     # optimizer
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, epsilon=epsilon)
 
-    logging.debug('pretrained model\'s files: \n', glob.glob(pretrained_model_dir+"/*"))
+    logging.debug('pretrained model\'s files: \n {}'.format(glob.glob(pretrained_model_dir+"/*")))
 
     # create and compile the Keras model in the context of strategy.scope
     model= TFBertForSequenceClassification.from_pretrained(pretrained_weights,
@@ -48,7 +48,7 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
 
 def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history):
     """Compiles keras model and loads data into it for training."""
-
+    logging.info('training the model ...')
     model_callbacks = []
 
     if output_dir:
