@@ -5,13 +5,12 @@ import os
 # 3 = INFO, WARNING, and ERROR messages are not printed
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
+import tensorflow as tf
+tf.get_logger().propagate = False
 from absl import logging
 from absl import flags
 from absl import app
 import logging as logger
-import re
-import tensorflow as tf
-tf.get_logger().propagate = False
 from transformers import (
     BertTokenizer,
     TFBertModel,
@@ -20,6 +19,7 @@ from transformers import (
 import preprocessing.preprocessing as pp
 import model.tf_bert_classification.model as tf_bert
 import utils.model_utils as mu
+import re
 
 FLAGS = flags.FLAGS
 
@@ -60,9 +60,6 @@ flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model'
 flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
 
 def main(argv):
-
-    tf.get_logger().propagate = False
-
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     formatter = logger.Formatter(fmt)
     logging.get_absl_handler().setFormatter(formatter)
