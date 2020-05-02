@@ -113,4 +113,3 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
             bucket_name = search.group(1)
             blob_name = search.group(2)
             mu.copy_local_directory_to_gcs(history_dir, bucket_name, blob_name+'/history')
-

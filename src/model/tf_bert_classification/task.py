@@ -20,6 +20,7 @@ import preprocessing.preprocessing as pp
 import model.tf_bert_classification.model as tf_bert
 import utils.model_utils as mu
 import re
+import hypertune
 
 FLAGS = flags.FLAGS
 
@@ -130,6 +131,13 @@ def main(argv):
                                    eval_data=valid_dataset,
                                    output_dir=FLAGS.output_dir,
                                    n_steps_history=FLAGS.n_steps_history)
+
+        # this is for hyperparameter tuning
+        #hpt = hypertune.HyperTune()
+        #hpt.report_hyperparameter_tuning_metric(
+        #    hyperparameter_metric_tag='accuracy',
+        #    metric_value=acc_eval,
+        #    global_step=0)
 
 if __name__ == '__main__':
     app.run(main)

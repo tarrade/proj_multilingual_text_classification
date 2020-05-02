@@ -81,8 +81,9 @@ class History_per_step(tf.keras.callbacks.Callback):
         # print('{}\n'.format(logs))
         return
 
-    def on_epoch_end(self, batch, logs={}):
-        # print('{}\n'.format(logs))
+    def on_epoch_end(self, epoch, logs={}):
+        tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
+        print('accuracy_train {} epoch {} \n'.format(logs.get('accuracy'),epoch))
         return
 
 # Class to save history from Keras

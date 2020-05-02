@@ -1,29 +1,19 @@
 trainingInput:
   scaleTier: BASIC
+  runtimeVersion: '2.1'
+  pythonVersion: '3.7'
+  region: 'europe-west1'
   hyperparameters:
     algorithm: ALGORITHM_UNSPECIFIED
     goal: MAXIMIZE
-    maxTrials: 50
-    maxParallelTrials: 5
+    maxTrials: 5
+    maxParallelTrials: 2
     enableTrialEarlyStopping: TRUE 
     maxFailedTrials: 1
-    hyperparameterMetricTag: accuracy
+    hyperparameterMetricTag: epoch_accuracy_train
     params:
-    - parameterName: WE_max_df
+    - parameterName: learning_rate
       type: DOUBLE
-      minValue: 0.0
+      minValue: 1.0e-8
       maxValue: 1.0
-      scaleType: UNIT_LINEAR_SCALE
-    - parameterName: WE_min_df
-      type: DOUBLE
-      minValue: 0.0
-      maxValue: 1.0
-      scaleType: UNIT_LINEAR_SCALE
-    - parameterName: FT_norm
-      type: CATEGORICAL
-      categoricalValues: ['l1', 'l2', 'None']
-    - parameterName: M_alpha
-      type: DOUBLE
-      minValue: 0.0
-      maxValue: 1.0
-      scaleType: UNIT_LINEAR_SCALE
+      scaleType: UNIT_LOG_SCALE
