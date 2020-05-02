@@ -1,2 +1,5 @@
 trainingInput:
   scaleTier: BASIC
+  runtimeVersion: '2.1'
+  pythonVersion: '3.7'
+  region: 'europe-west1'
