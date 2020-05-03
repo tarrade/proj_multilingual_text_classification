@@ -96,6 +96,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         # locally
         history_dir = os.path.join(output_dir, model.name)
         os.makedirs(history_dir, exist_ok=True)
+    logging.debug('history_dir: \n {}'.format(history_dir))
 
     with open(history_dir + '/history', 'wb') as file:
         model_history = mu.History_trained_model(history.history, history.epoch, history.params)
