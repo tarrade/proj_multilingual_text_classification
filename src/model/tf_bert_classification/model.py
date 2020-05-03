@@ -87,8 +87,16 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                         callbacks=model_callbacks)
 
     # save the history in a file
-    history_dir = os.path.join('./', model.name)
-    os.makedirs(history_dir, exist_ok=True)
+    search = re.search('gs://(.*?)/(.*)', output_dir)
+    if search is not None:
+        # temp folder locally and to be  ove on gcp later
+        history_dir = os.path.join('./', model.name)
+        os.makedirs(history_dir, exist_ok=True)
+    else:
+        # locally
+        history_dir = os.path.join(output_dir, model.name)
+        os.makedirs(history_dir, exist_ok=True)
+        
     with open(history_dir + '/history', 'wb') as file:
         model_history = mu.History_trained_model(history.history, history.epoch, history.params)
         pickle.dump(model_history, file, pickle.HIGHEST_PROTOCOL)
