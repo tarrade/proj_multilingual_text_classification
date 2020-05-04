@@ -81,7 +81,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     model_callbacks.append(histories_per_step)
 
     # callback to time each epoch
-    timing=mu.TimingCallback()
+    timing = mu.TimingCallback()
     model_callbacks.append(timing)
 
     # train the model
@@ -100,9 +100,9 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     elapsed_time_secs = time.time() - start_time
     logging.info('\nexecution time: {}'.format(timedelta(seconds=round(elapsed_time_secs))))
 
-    logging.info('timing per epoch:\n{}', timing.timing_epoch)
-    logging.info('sum timing:\n{}', sum(timing.timing_epoch))
-    
+    logging.info('timing per epoch:\n{}'.format(timedelta(seconds=round(timing.timing_epoch[0]))))
+    logging.info('sum timing over all epochs:\n{}'.format(timedelta(seconds=round(sum(timing.timing_epoch)))))
+
     # save the history in a file
     search = re.search('gs://(.*?)/(.*)', output_dir)
     if search is not None:

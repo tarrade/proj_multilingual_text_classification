@@ -88,7 +88,7 @@ class History_per_step(tf.keras.callbacks.Callback):
         return
 
 # Class to time eaach epoch
-class TimingCallback(keras.callbacks.Callback):
+class TimingCallback(tf.keras.callbacks.Callback):
     def __init__(self, logs={}):
         self.timing_epoch=[]
     def on_epoch_begin(self, epoch, logs={}):
