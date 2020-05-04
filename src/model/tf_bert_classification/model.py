@@ -100,7 +100,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     elapsed_time_secs = time.time() - start_time
     logging.info('\nexecution time: {}'.format(timedelta(seconds=round(elapsed_time_secs))))
 
-    logging.info('timing per epoch:\n{}'.format(timedelta(seconds=round(timing.timing_epoch[0]))))
+    logging.info('timing per epoch:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))),timing.timing_epoch))))
     logging.info('sum timing over all epochs:\n{}'.format(timedelta(seconds=round(sum(timing.timing_epoch)))))
 
     # save the history in a file
