@@ -6,6 +6,7 @@ import os
 import tensorflow as tf
 from tensorboard.backend.event_processing import event_accumulator
 from google.cloud import storage
+from timeit import default_timer as timer
 
 def save_model(estimator, gcspath, name):
     
@@ -85,6 +86,15 @@ class History_per_step(tf.keras.callbacks.Callback):
         tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
         print('accuracy_train {} epoch {} \n'.format(logs.get('accuracy'),epoch))
         return
+
+# Class to time eaach epoch
+class TimingCallback(keras.callbacks.Callback):
+    def __init__(self, logs={}):
+        self.timing_epoch=[]
+    def on_epoch_begin(self, epoch, logs={}):
+        self.starttime = timer()
+    def on_epoch_end(self, epoch, logs={}):
+        self.timing_epoch.append(timer()-self.starttime)
 
 # Class to save history from Keras
 class History_trained_model(object):

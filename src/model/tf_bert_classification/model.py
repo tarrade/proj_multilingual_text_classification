@@ -8,6 +8,8 @@ import glob
 import re
 import pickle
 from absl import logging
+import time
+from datetime import timedelta
 
 def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
     """Creates Keras Model for BERT Classification.
@@ -78,7 +80,15 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     histories_per_step = mu.History_per_step(eval_data, n_steps_history)
     model_callbacks.append(histories_per_step)
 
+    # callback to time each epoch
+    timing=mu.TimingCallback()
+    model_callbacks.append(timing)
+
     # train the model
+
+    # time the function
+    start_time = time.time()
+
     history = model.fit(train_data,
                         epochs=num_epochs,
                         steps_per_epoch=steps_per_epoch,
@@ -86,6 +96,13 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                         validation_steps=validation_steps,
                         callbacks=model_callbacks)
 
+    # print execution time
+    elapsed_time_secs = time.time() - start_time
+    logging.info('\nexecution time: {}'.format(timedelta(seconds=round(elapsed_time_secs))))
+
+    logging.info('timing per epoch:\n{}', timing.timing_epoch)
+    logging.info('sum timing:\n{}', sum(timing.timing_epoch))
+    
     # save the history in a file
     search = re.search('gs://(.*?)/(.*)', output_dir)
     if search is not None:
