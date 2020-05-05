@@ -59,6 +59,7 @@ flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evalu
 flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output of the model')
 flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
 flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
+flags.DEFINE_boolean('use_tpu', False, 'Activate TPU for training')
 
 def main(argv):
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
@@ -111,7 +112,19 @@ def main(argv):
     # reset Keras
     tf.keras.backend.clear_session()
 
-    strategy = tf.distribute.MirroredStrategy()
+    if FLAGS.use_tpu:
+        logging.info('setting up TPU: cluster resolver')
+        tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
+        logging.info('setting up TPU: \n {}'.format(tpu_cluster_resolver))
+        #tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
+        #    FLAGS.tpu if (FLAGS.tpu or params.use_tpu) else '',
+        #    zone=FLAGS.tpu_zone,
+        #    project=FLAGS.gcp_project)
+        tf.config.experimental_connect_to_cluster(tpu_cluster_resolver)
+        tf.tpu.experimental.initialize_tpu_system(tpu_cluster_resolver)
+        strategy = tf.distribute.experimental.TPUStrategy(tpu_cluster_resolver)
+    else:
+        strategy = tf.distribute.MirroredStrategy()
     logging.info('Number of devices: {}'.format(strategy.num_replicas_in_sync))
 
     # create and compile the Keras model in the context of strategy.scope
