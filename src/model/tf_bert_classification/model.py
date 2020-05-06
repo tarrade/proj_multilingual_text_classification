@@ -112,8 +112,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #        #if 'output.metric' in f:
     #        print(root + f)
 
-    logging.info('env variables: \n{}'.format(os.environ))
-    logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
+    #logging.info('env variables: \n{}'.format(os.environ))
+    #logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
     hpt = hypertune.HyperTune()
     hpt.report_hyperparameter_tuning_metric(
         hyperparameter_metric_tag='accuracy_train',
