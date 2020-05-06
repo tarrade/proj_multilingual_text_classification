@@ -10,6 +10,7 @@ import pickle
 from absl import logging
 import time
 from datetime import timedelta
+import hypertune
 
 def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
     """Creates Keras Model for BERT Classification.
@@ -102,6 +103,33 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     logging.info('timing per epoch:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))),timing.timing_epoch))))
     logging.info('sum timing over all epochs:\n{}'.format(timedelta(seconds=round(sum(timing.timing_epoch)))))
+
+    # this is for hyperparameter tuning
+    #logging.info('[1] list all files: \n')
+    #for root, dirs, files in os.walk("/var/hypertune/"):
+    #    # print(root, dirs)
+    #    for f in files:
+    #        #if 'output.metric' in f:
+    #        print(root + f)
+
+    logging.info('env variables: \n{}'.format(os.environ))
+    logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
+    hpt = hypertune.HyperTune()
+    hpt.report_hyperparameter_tuning_metric(
+        hyperparameter_metric_tag='accuracy_train',
+        metric_value=histories_per_step.accuracies[-1],
+        global_step=0)
+
+    #logging.info('[2] list all files: \n')
+    #for root, dirs, files in os.walk("/var/hypertune/"):
+    #    # print(root, dirs)
+    #    for f in files:
+    #        #if 'output.metric' in f:
+    #        print(root + f)
+
+    #path_metric='/var/hypertune/output.metric'
+    #with open(path_metric, 'r') as f:
+    #    print(f.read())
 
     # save the history in a file
     search = re.search('gs://(.*?)/(.*)', output_dir)

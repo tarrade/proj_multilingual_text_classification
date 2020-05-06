@@ -10,7 +10,7 @@ trainingInput:
     maxParallelTrials: 2
     enableTrialEarlyStopping: TRUE 
     maxFailedTrials: 1
-    hyperparameterMetricTag: epoch_accuracy_train
+    hyperparameterMetricTag: accuracy_train
     params:
     - parameterName: learning_rate
       type: DOUBLE
