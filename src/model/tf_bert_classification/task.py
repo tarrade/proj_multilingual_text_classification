@@ -98,8 +98,8 @@ def main(argv):
         pretrained_model_dir = '.'
 
     # read TFRecords files
-    train_files = tf.data.TFRecordDataset(FLAGS.input_train_tfrecords + '/train_dataset.tfrecord')
-    valid_files = tf.data.TFRecordDataset(FLAGS.input_eval_tfrecords + '/valid_dataset.tfrecord')
+    train_files = tf.data.TFRecordDataset(tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord'))
+    valid_files = tf.data.TFRecordDataset(tf.io.gfile.glob(FLAGS.input_eval_tfrecords+'/*.tfrecord'))
 
     train_dataset = train_files.map(pp.parse_tfrecord_glue_files)
     valid_dataset = valid_files.map(pp.parse_tfrecord_glue_files)
