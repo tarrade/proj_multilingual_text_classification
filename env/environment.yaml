@@ -47,17 +47,17 @@ dependencies:
   - facets-overview==1.0.0
   # machine learning
   - xgboost==1.0.1
-  - tensorflow==2.1.0 # for Mac only
-  - tensorboard==2.2.0
+  - tensorflow==2.2.0
+  - tensorboard==2.2.1
   - tensorboard_plugin_profile==2.2.0
   - grpcio==1.24.3 # needed for Mac only ?
-  - tensorflow-hub==0.7.0
-  - tensorflow-datasets==2.1.0
-  - tensorflow-text==2.1.0rc0
+  - tensorflow-hub==0.8.0
+  - tensorflow-datasets==3.1.0
+  - tensorflow-text==2.2.0rc2
   - tensorflow-addons==0.7.1
   - cloudml-hypertune==0.1.0.dev6
   # machine learning - nlp
-  - transformers==2.8.0
+  - transformers==2.9.0
   - bert-embedding
   # EN core trained on web small size(sm) (exist md:medium or ld:large)
   - "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"
