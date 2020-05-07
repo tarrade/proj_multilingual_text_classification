@@ -97,6 +97,13 @@ def main(argv):
         # download pre trained model from internet
         pretrained_model_dir = '.'
 
+    # some check
+    logging.info('Batch size:            {:6}/{:6}'.format(FLAGS.batch_size_train,
+                                                           FLAGS.batch_size_eval))
+    logging.info('Step per epoch:        {:6}/{:6}'.format(FLAGS.steps_per_epoch_train,
+                                                           FLAGS.steps_per_epoch_eval))
+    logging.info('Total number of batch: {:6}/{:6}'.format(FLAGS.steps_per_epoch_train * (FLAGS.epochs + 1),
+                                                           FLAGS.steps_per_epoch_eval * 1))
     # read TFRecords files
     train_files = tf.data.TFRecordDataset(tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord'))
     valid_files = tf.data.TFRecordDataset(tf.io.gfile.glob(FLAGS.input_eval_tfrecords+'/*.tfrecord'))
