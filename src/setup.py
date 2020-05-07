@@ -2,6 +2,8 @@ from setuptools import find_packages
 from setuptools import setup
 
 REQUIRED_PACKAGES = ['transformers==2.8.0',
+                     'tensorflow==2.2.0rc4',
+                     'tensorboard_plugin_profile==2.2.0',
                      'pip==20.1',
                      'google-cloud-bigquery==1.24.0',
                      'google-cloud-storage==1.26.0',
