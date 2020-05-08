@@ -16,7 +16,6 @@ from transformers import (
     TFBertModel,
     glue_convert_examples_to_features,
 )
-import preprocessing.preprocessing as pp
 import model.tf_bert_classification.model as tf_bert
 import utils.model_utils as mu
 import re
@@ -105,15 +104,16 @@ def main(argv):
     logging.info('Total number of batch: {:6}/{:6}'.format(FLAGS.steps_per_epoch_train * (FLAGS.epochs + 1),
                                                            FLAGS.steps_per_epoch_eval * 1))
     # read TFRecords files
-    train_files = tf.data.TFRecordDataset(tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord'))
-    valid_files = tf.data.TFRecordDataset(tf.io.gfile.glob(FLAGS.input_eval_tfrecords+'/*.tfrecord'))
+    train_files = tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord')
+    valid_files = tf.io.gfile.glob(FLAGS.input_eval_tfrecords+'/*.tfrecord')
 
-    train_dataset = train_files.map(pp.parse_tfrecord_glue_files)
-    valid_dataset = valid_files.map(pp.parse_tfrecord_glue_files)
+    #  set shuffle, map and batch size
+    train_dataset = tf_bert.build_dataset(train_files, FLAGS.batch_size_train)
+    valid_dataset = tf_bert.build_dataset(valid_files, FLAGS.batch_size_eval)
 
-    # set shuffle and batch size
-    train_dataset = train_dataset.shuffle(100).batch(FLAGS.batch_size_train).repeat(FLAGS.epochs + 1)
-    valid_dataset = valid_dataset.batch(FLAGS.batch_size_eval)
+    # set repeat
+    train_dataset = train_dataset.repeat(FLAGS.epochs + 1)
+    valid_dataset = valid_dataset.repeat(2)
 
     # reset Keras
     tf.keras.backend.clear_session()

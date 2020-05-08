@@ -3,6 +3,7 @@ from transformers import (
     TFBertForSequenceClassification,
 )
 import utils.model_utils as mu
+import preprocessing.preprocessing as pp
 import os
 import glob
 import re
@@ -11,6 +12,27 @@ from absl import logging
 import time
 from datetime import timedelta
 import hypertune
+
+def build_dataset(file_pattern, batch_size, shuffle_buffer=2048):
+    # use take(55) to take 55 events or batches
+    return tf.data.Dataset.list_files(
+        file_pattern
+    ).interleave(
+        tf.data.TFRecordDataset,
+        cycle_length=tf.data.experimental.AUTOTUNE,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE
+    ).shuffle(
+        shuffle_buffer
+    ).map(
+        map_func=pp.parse_tfrecord_glue_files,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE
+    ).batch(
+        batch_size=batch_size,
+        drop_remainder=True
+    ).cache(
+    ).prefetch(
+        tf.data.experimental.AUTOTUNE
+    )
 
 def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
     """Creates Keras Model for BERT Classification.
@@ -95,6 +117,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                         steps_per_epoch=steps_per_epoch,
                         validation_data=eval_data,
                         validation_steps=validation_steps,
+                        verbose=1,
                         callbacks=model_callbacks)
 
     # print execution time
@@ -107,6 +130,13 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # this is for hyperparameter tuning
     #logging.info('[1] list all files: \n')
     #for root, dirs, files in os.walk("/var/hypertune/"):
+    #    # print(root, dirs)
+    #    for f in files:
+    #        #if 'output.metric' in f:
+    #        print(root + f)
+
+    #logging.info('[2] list all files: \n')
+    #for root, dirs, files in os.walk("/tmp/hypertune/"):
     #    # print(root, dirs)
     #    for f in files:
     #        #if 'output.metric' in f:
