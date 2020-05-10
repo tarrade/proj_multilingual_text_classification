@@ -22,7 +22,7 @@ import re
 
 FLAGS = flags.FLAGS
 
-# Maximum length, becareful BERT max length is 512!
+# Maximum length, be becareful BERT max length is 512!
 MAX_LENGTH = 128
 
 # define default parameters
@@ -104,12 +104,15 @@ def main(argv):
     logging.info('Total number of batch: {:6}/{:6}'.format(FLAGS.steps_per_epoch_train * (FLAGS.epochs + 1),
                                                            FLAGS.steps_per_epoch_eval * 1))
     # read TFRecords files
-    train_files = tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord')
-    valid_files = tf.io.gfile.glob(FLAGS.input_eval_tfrecords+'/*.tfrecord')
+    #train_files = tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord')
+    #valid_files = tf.io.gfile.glob(FLAGS.input_eval_tfrecords+'/*.tfrecord')
+    #train_dataset = tf_bert.build_dataset(train_files, FLAGS.batch_size_train, 2048)
+    #valid_dataset = tf_bert.build_dataset(valid_files, FLAGS.batch_size_eval, 2048)
+    #print('test 1:', list(tf.data.Dataset.list_files(tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord'))))
 
     #  set shuffle, map and batch size
-    train_dataset = tf_bert.build_dataset(train_files, FLAGS.batch_size_train)
-    valid_dataset = tf_bert.build_dataset(valid_files, FLAGS.batch_size_eval)
+    train_dataset = tf_bert.build_dataset(FLAGS.input_train_tfrecords, FLAGS.batch_size_train, 2048)
+    valid_dataset = tf_bert.build_dataset(FLAGS.input_eval_tfrecords, FLAGS.batch_size_eval, 2048)
 
     # set repeat
     train_dataset = train_dataset.repeat(FLAGS.epochs + 1)
