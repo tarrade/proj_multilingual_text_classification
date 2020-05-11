@@ -24,7 +24,7 @@ import re
 FLAGS = flags.FLAGS
 
 # Maximum length, becareful BERT max length is 512!
-MAX_LENGTH = 128
+MAX_LENGTH = 512
 
 # define default parameters
 BATCH_SIZE_TRAIN = 32
