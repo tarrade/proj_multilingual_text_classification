@@ -3,6 +3,7 @@ from transformers import (
     TFBertForSequenceClassification,
 )
 import utils.model_utils as mu
+import preprocessing.preprocessing as pp
 import os
 import glob
 import re
@@ -11,6 +12,91 @@ from absl import logging
 import time
 from datetime import timedelta
 import hypertune
+
+def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
+
+    #print('debug1:', input_tfrecords)
+    #file_pattern = tf.io.gfile.glob(input_tfrecords+'/*.tfrecord')
+    #print('debug2:',  file_pattern)
+    #pattern = input_tfrecords+'/*.tfrecord'
+    file_pattern = input_tfrecords+'/*.tfrecord'
+    #print('test 2-1:', list(tf.data.Dataset.list_files(tf.io.gfile.glob(file_pattern))))
+    #print('test 2-2:', list(tf.data.Dataset.list_files(file_pattern)))
+    # standard
+    #dataset = tf.data.TFRecordDataset(file_pattern)
+    #dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.shuffle(shuffle_buffer)
+    #dataset = dataset.batch(batch_size)
+    #return dataset
+
+    # standard 1
+    #dataset = tf.data.TFRecordDataset(file_pattern)
+    #dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.shuffle(shuffle_buffer)
+    #dataset = dataset.batch(batch_size)
+    #dataset = dataset.cache()
+    #dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    #return dataset
+
+    # standard 2
+    #dataset = tf.data.TFRecordDataset(file_pattern)
+    #dataset = dataset.shuffle(shuffle_buffer)
+    #dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.batch(batch_size)
+    #dataset = dataset.cache()
+    #dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    #return dataset
+
+    # best way ?
+    dataset = tf.data.Dataset.list_files(file_pattern,
+                                         shuffle=True,
+                                         seed=None
+                                         )
+    dataset = dataset.interleave(tf.data.TFRecordDataset,
+                                 cycle_length=tf.data.experimental.AUTOTUNE,
+                                 num_parallel_calls=tf.data.experimental.AUTOTUNE,
+                                 deterministic=False)
+    dataset = dataset.shuffle(shuffle_buffer)
+    dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.cache()
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset
+
+    # standard 4 -> issue: flat  accuracy and loss
+    #dataset = tf.data.Dataset.from_tensor_slices(file_pattern)
+    #dataset = dataset.interleave(lambda x: tf.data.TFRecordDataset(x),
+    #                             cycle_length=tf.data.experimental.AUTOTUNE,
+    #                             num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    #                             deterministic=False)
+    #dataset = dataset.shuffle(shuffle_buffer)
+    #dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.batch(batch_size)
+    #dataset = dataset.cache()
+    #dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    #return dataset
+
+
+
+    # use take(55) to take 55 events or batches
+    #return tf.data.Dataset.list_files(
+    #    file_pattern
+    #).interleave(
+    #    tf.data.TFRecordDataset,
+    #    cycle_length=tf.data.experimental.AUTOTUNE,
+    #    num_parallel_calls=tf.data.experimental.AUTOTUNE
+    #).shuffle(
+    #    shuffle_buffer
+    #).map(
+    #    map_func=pp.parse_tfrecord_glue_files,
+    #    num_parallel_calls=tf.data.experimental.AUTOTUNE
+    #).batch(
+    #    batch_size=batch_size,
+    #    drop_remainder=True
+    #).cache(
+    #).prefetch(
+    #    tf.data.experimental.AUTOTUNE
+    #)
 
 def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
     """Creates Keras Model for BERT Classification.
@@ -62,7 +148,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                                                               embeddings_freq=1,
                                                               write_graph=True,
                                                               update_freq='batch',
-                                                              profile_batch=1)
+                                                              profile_batch='10, 20')
         model_callbacks.append(tensorboard_callback)
 
         # checkpoints callback
@@ -95,6 +181,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                         steps_per_epoch=steps_per_epoch,
                         validation_data=eval_data,
                         validation_steps=validation_steps,
+                        verbose=1,
                         callbacks=model_callbacks)
 
     # print execution time
@@ -107,6 +194,13 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # this is for hyperparameter tuning
     #logging.info('[1] list all files: \n')
     #for root, dirs, files in os.walk("/var/hypertune/"):
+    #    # print(root, dirs)
+    #    for f in files:
+    #        #if 'output.metric' in f:
+    #        print(root + f)
+
+    #logging.info('[2] list all files: \n')
+    #for root, dirs, files in os.walk("/tmp/hypertune/"):
     #    # print(root, dirs)
     #    for f in files:
     #        #if 'output.metric' in f:
