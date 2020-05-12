@@ -139,10 +139,13 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     """Compiles keras model and loads data into it for training."""
     logging.info('training the model ...')
     model_callbacks = []
+    suffix = mu.get_trial_id()
 
     if output_dir:
         # tensorflow callback
         log_dir = os.path.join(output_dir, 'tensorboard')
+        if suffix != '':
+            log_dir = os.path.join(log_dir, suffix)
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
                                                               histogram_freq=1,
                                                               embeddings_freq=1,
@@ -153,6 +156,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
         # checkpoints callback
         checkpoint_dir = os.path.join(output_dir, 'checkpoint_model')
+        if suffix != '':
+            checkpoint_dir = os.path.join(checkpoint_dir, suffix)
         checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt_{epoch:02d}')
         checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
                                                                  verbose=1,
@@ -206,7 +211,6 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #        #if 'output.metric' in f:
     #        print(root + f)
 
-    #logging.info('env variables: \n{}'.format(os.environ))
     #logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
     hpt = hypertune.HyperTune()
     hpt.report_hyperparameter_tuning_metric(
@@ -253,6 +257,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     if output_dir:
         # save the model
         savemodel_path = os.path.join(output_dir, 'saved_model')
+        if suffix != '':
+            savemodel_path = os.path.join(savemodel_path, suffix)
         model.save(os.path.join(savemodel_path, model.name))
 
         # save history
@@ -260,4 +266,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         if search is not None:
             bucket_name = search.group(1)
             blob_name = search.group(2)
-            mu.copy_local_directory_to_gcs(history_dir, bucket_name, blob_name+'/history')
+            output_folder=blob_name+'/history'
+            if suffix != '':
+                output_folder = os.path.join(output_folder, suffix)
+            mu.copy_local_directory_to_gcs(history_dir, bucket_name, output_folder)

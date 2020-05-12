@@ -6,7 +6,7 @@ trainingInput:
   hyperparameters:
     algorithm: ALGORITHM_UNSPECIFIED
     goal: MAXIMIZE
-    maxTrials: 5
+    maxTrials: 3
     maxParallelTrials: 2
     enableTrialEarlyStopping: TRUE 
     maxFailedTrials: 1

@@ -70,8 +70,9 @@ def main(argv):
 
     logging.info(tf.__version__)
     logging.info(tf.keras.__version__)
-    logging.info(list(FLAGS))
-    logging.debug('Flags: \n {}'.format(FLAGS))
+    logging.debug(list(FLAGS))
+    logging.debug('flags: \n {}'.format(FLAGS))
+    logging.info('env variables: \n{}'.format(os.environ))
 
     # choose language's model and tokenizer
     MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased')]

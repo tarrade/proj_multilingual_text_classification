@@ -3,6 +3,7 @@ from sklearn.externals import joblib
 import numpy as np
 import re
 import os
+import json
 import tensorflow as tf
 from tensorboard.backend.event_processing import event_accumulator
 from google.cloud import storage
@@ -162,3 +163,11 @@ def download_blob(bucket_name, blob_name, destination_file_name):
 
     print('blob {} downloaded to {}'.format(blob_name, destination_file_name+'/'+blob_name)
     )
+
+# adding specific folder per trial
+def get_trial_id():
+    suffix = json.loads(os.environ.get("TF_CONFIG", "{}")).get("task", {}).get("trial", "")
+    if suffix == '':
+        return suffix
+    else :
+        return 'trial_id_'+suffix
