@@ -22,6 +22,7 @@ import re
 
 FLAGS = flags.FLAGS
 
+
 # Maximum length, be becareful BERT max length is 512!
 MAX_LENGTH = 128
 

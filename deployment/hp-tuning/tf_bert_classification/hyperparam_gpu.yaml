@@ -1,0 +1,19 @@
+trainingInput:
+  scaleTier: BASIC_GPU
+  runtimeVersion: '2.1'
+  pythonVersion: '3.7'
+  region: 'europe-west1'
+  hyperparameters:
+    algorithm: ALGORITHM_UNSPECIFIED
+    goal: MAXIMIZE
+    maxTrials: 9
+    maxParallelTrials: 3
+    enableTrialEarlyStopping: TRUE 
+    maxFailedTrials: 1
+    hyperparameterMetricTag: accuracy_train
+    params:
+    - parameterName: learning_rate
+      type: DOUBLE
+      minValue: 1.0e-5
+      maxValue: 7.0e-5
+      scaleType: UNIT_LOG_SCALE
