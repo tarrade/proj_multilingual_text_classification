@@ -17,3 +17,8 @@ trainingInput:
       minValue: 1.0e-8
       maxValue: 1.0
       scaleType: UNIT_LOG_SCALE
+    - parameterName: epsilon
+      type: DOUBLE
+      minValue: 1.0e-9
+      maxValue: 1.0
+      scaleType: UNIT_LOG_SCALE

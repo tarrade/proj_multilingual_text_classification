@@ -68,10 +68,18 @@ def main(argv):
     # set level of verbosity
     logging.set_verbosity(FLAGS.verbosity)
 
+    # to be deleted
+    #logging.info('test 1 eval {}'.format(eval('FLAGS.learning_rate')))
+    #logging.info('test 2 eval {}'.format(FLAGS['learning_rate']))
+
     logging.info(tf.__version__)
     logging.info(tf.keras.__version__)
     logging.debug(list(FLAGS))
     logging.debug('flags: \n {}'.format(FLAGS))
+    logging.info('os.environ[CLOUD_ML_HP_METRIC_TAG]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_TAG']))
+    logging.info('os.environ[CLOUD_ML_HP_METRIC_FILE]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_FILE']))
+    logging.info('os.environ[CLOUD_ML_TRIAL_ID]: {}'.format(os.environ['CLOUD_ML_TRIAL_ID']))
+    logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
     logging.info('env variables: \n{}'.format(os.environ))
 
     # choose language's model and tokenizer
@@ -155,7 +163,8 @@ def main(argv):
                                    validation_steps=FLAGS.steps_per_epoch_eval,
                                    eval_data=valid_dataset,
                                    output_dir=FLAGS.output_dir,
-                                   n_steps_history=FLAGS.n_steps_history)
+                                   n_steps_history=FLAGS.n_steps_history,
+                                   FLAGS=FLAGS)
 
 if __name__ == '__main__':
     app.run(main)

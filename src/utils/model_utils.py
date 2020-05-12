@@ -169,5 +169,5 @@ def get_trial_id():
     suffix = json.loads(os.environ.get("TF_CONFIG", "{}")).get("task", {}).get("trial", "")
     if suffix == '':
         return suffix
-    else :
+    else:
         return 'trial_id_'+suffix

@@ -10,8 +10,10 @@ import re
 import pickle
 from absl import logging
 import time
+import json
 from datetime import timedelta
 import hypertune
+from tensorboard.plugins.hparams import api as hp
 
 def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
 
@@ -135,7 +137,7 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     return model
 
 
-def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history):
+def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history, FLAGS):
     """Compiles keras model and loads data into it for training."""
     logging.info('training the model ...')
     model_callbacks = []
@@ -212,10 +214,12 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #        print(root + f)
 
     #logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
+    metric_accuracy='accuracy_train'
+    value_accuracy=histories_per_step.accuracies[-1]
     hpt = hypertune.HyperTune()
     hpt.report_hyperparameter_tuning_metric(
-        hyperparameter_metric_tag='accuracy_train',
-        metric_value=histories_per_step.accuracies[-1],
+        hyperparameter_metric_tag=metric_accuracy,
+        metric_value=value_accuracy,
         global_step=0)
 
     #logging.info('[2] list all files: \n')
@@ -228,6 +232,36 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #path_metric='/var/hypertune/output.metric'
     #with open(path_metric, 'r') as f:
     #    print(f.read())
+
+    # for hp parameter tuning in TensorBoard
+    print(eval('FLAGS.learning_rate'))
+    if suffix != '':
+        params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
+        list_hp = []
+        hparams = {}
+        for el in params:
+            hp_dict = dict(el)
+            if hp_dict.get('type') == 'DOUBLE':
+                key_hp=hp.HParam(hp_dict.get('parameter_name'),
+                                         hp.RealInterval(hp_dict.get('min_value'), hp_dict.get('max_value')))
+                list_hp.append(key_hp)
+                try:
+                    hparams[key_hp] = FLAGS[hp_dict.get('parameter_name')].value
+                except KeyError:
+                    logging.error('hyperparameter key {} doesn\'t exist'.format(hp_dict.get('parameter_name')))
+                # to be deleted
+                #hparams[key_hp]=eval('FLAGS.'+hp_dict.get('parameter_name'))
+
+        print(list_hp)
+        with tf.summary.create_file_writer(os.path.join(output_dir, 'tensorboard')).as_default():
+            hp.hparams_config(
+                hparams=list_hp,
+                metrics=[hp.Metric(metric_accuracy, display_name='Accuracy')],
+            )
+
+        with tf.summary.create_file_writer(log_dir).as_default():
+            hp.hparams(hparams)  # record the values used in this trial
+            tf.summary.scalar(metric_accuracy, value_accuracy, step=1)
 
     # save the history in a file
     search = re.search('gs://(.*?)/(.*)', output_dir)
