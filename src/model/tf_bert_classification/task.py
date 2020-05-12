@@ -125,6 +125,7 @@ def main(argv):
         logging.info('setting up TPU: cluster resolver')
         tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
         logging.info('setting up TPU: \n {}'.format(tpu_cluster_resolver))
+        logging.info('running on TPU: \n {}'.format(tpu_cluster_resolver.cluster_spec().as_dict()['worker']))
         #tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
         #    FLAGS.tpu if (FLAGS.tpu or params.use_tpu) else '',
         #    zone=FLAGS.tpu_zone,
