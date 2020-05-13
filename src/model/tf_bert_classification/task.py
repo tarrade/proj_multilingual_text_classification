@@ -3,8 +3,8 @@ import os
 # 1 = INFO messages are not printed
 # 2 = INFO and WARNING messages are not printed
 # 3 = INFO, WARNING, and ERROR messages are not printed
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
+os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
 import tensorflow as tf
 tf.get_logger().propagate = False
 from absl import logging
@@ -67,6 +67,7 @@ def main(argv):
 
     # set level of verbosity
     logging.set_verbosity(FLAGS.verbosity)
+    #logging.set_stderrthreshold(FLAGS.verbosity)
 
     # to be deleted
     #logging.info('test 1 eval {}'.format(eval('FLAGS.learning_rate')))
@@ -76,9 +77,10 @@ def main(argv):
     logging.info(tf.keras.__version__)
     logging.debug(list(FLAGS))
     logging.debug('flags: \n {}'.format(FLAGS))
-    logging.info('os.environ[CLOUD_ML_HP_METRIC_TAG]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_TAG']))
-    logging.info('os.environ[CLOUD_ML_HP_METRIC_FILE]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_FILE']))
-    logging.info('os.environ[CLOUD_ML_TRIAL_ID]: {}'.format(os.environ['CLOUD_ML_TRIAL_ID']))
+    # only for HP tuning!
+    #logging.info('os.environ[CLOUD_ML_HP_METRIC_TAG]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_TAG']))
+    #logging.info('os.environ[CLOUD_ML_HP_METRIC_FILE]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_FILE']))
+    #logging.info('os.environ[CLOUD_ML_TRIAL_ID]: {}'.format(os.environ['CLOUD_ML_TRIAL_ID']))
     logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
     logging.info('env variables: \n{}'.format(os.environ))
 
