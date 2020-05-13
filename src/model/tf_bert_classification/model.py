@@ -252,14 +252,16 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                 # to be deleted
                 #hparams[key_hp]=eval('FLAGS.'+hp_dict.get('parameter_name'))
 
-        print(list_hp)
-        with tf.summary.create_file_writer(os.path.join(output_dir, 'tensorboard')).as_default():
+        hparams_dir = os.path.join(output_dir, 'hparams_tuning')
+        with tf.summary.create_file_writer(hparams_dir).as_default():
             hp.hparams_config(
                 hparams=list_hp,
                 metrics=[hp.Metric(metric_accuracy, display_name='Accuracy')],
             )
+        if suffix != '':
+            hparams_dir = os.path.join(hparams_dir, suffix)
 
-        with tf.summary.create_file_writer(log_dir).as_default():
+        with tf.summary.create_file_writer(hparams_dir).as_default():
             hp.hparams(hparams)  # record the values used in this trial
             tf.summary.scalar(metric_accuracy, value_accuracy, step=1)
 
