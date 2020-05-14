@@ -137,7 +137,7 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     return model
 
 
-def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history, FLAGS):
+def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history, FLAGS, learning_rate=3e-5, s=1):
     """Compiles keras model and loads data into it for training."""
     logging.info('training the model ...')
     model_callbacks = []
@@ -167,9 +167,23 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         model_callbacks.append(checkpoint_callback)
 
         # decay learning rate callback
-        #decay_callback = tf.keras.callbacks.LearningRateScheduler(mu.decay)
-        #model_callbacks.append(decay_callback)
-
+        #---------------------------------------------------------------------------------------------------------------
+        # exponential decay function
+        def exponential_decay(lr0, s):
+            def exponential_decay_fn(steps_per_epoch):
+                return lr0 * 0.1**(steps_per_epoch / s)
+            return exponential_decay_fn
+     
+        exponential_decay_fn = exponential_decay(lr0=learning_rate, s=s)
+        lr_scheduler = tf.keras.callbacks.LearningRateScheduler(exponential_decay_fn, verbose=1)
+        model_callbacks.append(lr_scheduler)
+        #print_lr = mu.PrintLR()
+        model_callbacks.append(mu.PrintLR())
+        #---------------------------------------------------------------------------------------------------------------
+  
+    # callback to store all the learning rates
+    all_learning_rates = mu.LR_per_step(model.optimizer, n_steps_history)
+    
     # callback to create  history per step (not per epoch)
     histories_per_step = mu.History_per_step(eval_data, n_steps_history)
     model_callbacks.append(histories_per_step)
@@ -234,7 +248,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #    print(f.read())
 
     # for hp parameter tuning in TensorBoard
-    print(eval('FLAGS.learning_rate'))
+    #print(eval('FLAGS.learning_rate'))
     if suffix != '':
         params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
         list_hp = []
