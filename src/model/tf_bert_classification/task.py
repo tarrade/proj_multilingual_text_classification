@@ -61,6 +61,12 @@ flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR
 flags.DEFINE_boolean('use_tpu', False, 'Activate TPU for training')
 
 def main(argv):
+
+    if os.environ.get('LOG_FILE_TO_WRITE') is not None:
+        logging.info('os.environ[LOG_FILE_TO_WRITE]: {}'.format(os.environ['LOG_FILE_TO_WRITE']))
+        split_path = os.environ['LOG_FILE_TO_WRITE'].split('/')
+        logging.get_absl_handler().use_absl_log_file(split_path[-1], '/'.join(split_path[:-1]))
+
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     formatter = logger.Formatter(fmt)
     logging.get_absl_handler().setFormatter(formatter)
@@ -75,14 +81,21 @@ def main(argv):
 
     logging.info(tf.__version__)
     logging.info(tf.keras.__version__)
-    logging.debug(list(FLAGS))
-    logging.debug('flags: \n {}'.format(FLAGS))
-    # only for HP tuning!
-    #logging.info('os.environ[CLOUD_ML_HP_METRIC_TAG]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_TAG']))
-    #logging.info('os.environ[CLOUD_ML_HP_METRIC_FILE]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_FILE']))
-    #logging.info('os.environ[CLOUD_ML_TRIAL_ID]: {}'.format(os.environ['CLOUD_ML_TRIAL_ID']))
-    logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
+    logging.info(list(FLAGS))
+    logging.info('flags: \n {}'.format(FLAGS))
     logging.info('env variables: \n{}'.format(os.environ))
+
+    # only for HP tuning!
+    if os.environ.get('CLOUD_ML_HP_METRIC_TAG') is not None:
+        logging.info('this is a hyper parameters job !')
+        logging.info('os.environ[CLOUD_ML_HP_METRIC_TAG]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_TAG']))
+        logging.info('os.environ[CLOUD_ML_HP_METRIC_FILE]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_FILE']))
+        logging.info('os.environ[CLOUD_ML_TRIAL_ID]: {}'.format(os.environ['CLOUD_ML_TRIAL_ID']))
+
+    if os.environ.get('TF_CONFIG') is not None:
+        logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
+    else:
+        logging.error('os.environ[TF_CONFIG] doesn\'t exist !')
 
     # choose language's model and tokenizer
     MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased')]

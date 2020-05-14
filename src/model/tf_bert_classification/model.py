@@ -234,7 +234,6 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #    print(f.read())
 
     # for hp parameter tuning in TensorBoard
-    print(eval('FLAGS.learning_rate'))
     if suffix != '':
         params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
         list_hp = []
