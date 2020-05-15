@@ -1,5 +1,6 @@
 import tensorflow as tf
 from transformers import (
+    __version__,
     TFBertForSequenceClassification,
 )
 import utils.model_utils as mu
@@ -11,6 +12,7 @@ import pickle
 from absl import logging
 import time
 import json
+import sys
 from datetime import timedelta
 import hypertune
 from tensorboard.plugins.hparams import api as hp
@@ -143,12 +145,13 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     model_callbacks = []
 
     # create meta data dictionary
-    dict_model={}
-    dict_data={}
-    dict_parameter={}
-    dict_hardware={}
-    dict_results={}
-    dict_type_jon={}
+    dict_model = {}
+    dict_data = {}
+    dict_parameter = {}
+    dict_hardware = {}
+    dict_results = {}
+    dict_type_job = {}
+    dict_software = {}
 
     if FLAGS.is_hyperparameter_tuning:
         # get trial ID
@@ -323,10 +326,56 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                 output_folder = os.path.join(output_folder, suffix)
             mu.copy_local_directory_to_gcs(history_dir, bucket_name, output_folder)
 
+    # add meta data
+    dict_model['pretrained_transformer_model'] = FLAGS.pretrained_model_dir
+    dict_model['num_classes'] = FLAGS.num_classes
+
+    dict_data['train'] = FLAGS.input_train_tfrecords
+    dict_data['eval'] = FLAGS.input_eval_tfrecords
+
+    dict_parameter['use_decay_learning_rate'] = FLAGS.use_decay_learning_rate
+    dict_parameter['epochs'] = FLAGS.epochs
+    dict_parameter['steps_per_epoch_train'] = FLAGS.steps_per_epoch_train
+    dict_parameter['steps_per_epoch_eval'] = FLAGS.steps_per_epoch_eval
+    dict_parameter['n_steps_history'] = FLAGS.n_steps_history
+    dict_parameter['batch_size_train'] = FLAGS.batch_size_train
+    dict_parameter['batch_size_eval'] = FLAGS.batch_size_eval
+    dict_parameter['learning_rate'] = FLAGS.learning_rate
+    dict_parameter['epsilon'] = FLAGS.epsilon
+
+    dict_hardware['is_tpu'] = FLAGS.use_tpu
+
+    dict_results['tensorflow'] = 1
+    dict_results['tensorflow'] = 1
+    dict_results['tensorflow'] = 1
+
+    dict_type_job['is_hyperparameter_tuning'] = FLAGS.is_hyperparameter_tuning
+    dict_type_job['is_tpu'] = FLAGS.use_tpu
+
+    dict_software['tensorflow'] = tf.__version__
+    dict_software['transformer'] = __version__
+    dict_software['python'] = sys.version
+
     # aggregate dictionaries
-    dict_all={'model': dict_model,
-              'data': dict_data,
-              'parameter': dict_parameter,
-              'hardware': dict_hardware,
-              'results' :dict_results,
-              'type_jobs': dict_type_jon}
+    dict_all = {'model': dict_model,
+                'data': dict_data,
+                'parameter': dict_parameter,
+                'hardware': dict_hardware,
+                'results': dict_results,
+                'type_job': dict_type_job,
+                'software': dict_software}
+
+    # save metadata
+    search = re.search('gs://(.*?)/(.*)', output_dir)
+    if search is not None:
+        bucket_name = search.group(1)
+        blob_name = search.group(2)
+        output_folder = blob_name + '/metadata'
+
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(output_folder+'/model_job_metadata.json')
+        blob.upload_from_string(
+            data=json.dumps(dict_all),
+            content_type='application/json'
+        )
