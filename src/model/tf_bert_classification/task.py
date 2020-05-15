@@ -58,9 +58,17 @@ flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evalu
 flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output of the model')
 flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
 flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
-flags.DEFINE_boolean('use_tpu', False, 'Activate TPU for training')
+flags.DEFINE_boolean('use_tpu', False, 'activate TPU for training')
+flags.DEFINE_boolean('use_decay_learning_rate', False, 'activate decay learning rate')
+flags.DEFINE_boolean('is_hyperparameter_tuning', False, 'automatic and inter flag')
 
 def main(argv):
+
+    if os.environ.get('LOG_FILE_TO_WRITE') is not None:
+        logging.info('os.environ[LOG_FILE_TO_WRITE]: {}'.format(os.environ['LOG_FILE_TO_WRITE']))
+        split_path = os.environ['LOG_FILE_TO_WRITE'].split('/')
+        logging.get_absl_handler().use_absl_log_file(split_path[-1], '/'.join(split_path[:-1]))
+
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     formatter = logger.Formatter(fmt)
     logging.get_absl_handler().setFormatter(formatter)
@@ -69,20 +77,28 @@ def main(argv):
     logging.set_verbosity(FLAGS.verbosity)
     #logging.set_stderrthreshold(FLAGS.verbosity)
 
-    # to be deleted
-    #logging.info('test 1 eval {}'.format(eval('FLAGS.learning_rate')))
-    #logging.info('test 2 eval {}'.format(FLAGS['learning_rate']))
-
     logging.info(tf.__version__)
     logging.info(tf.keras.__version__)
-    logging.debug(list(FLAGS))
-    logging.debug('flags: \n {}'.format(FLAGS))
-    # only for HP tuning!
-    #logging.info('os.environ[CLOUD_ML_HP_METRIC_TAG]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_TAG']))
-    #logging.info('os.environ[CLOUD_ML_HP_METRIC_FILE]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_FILE']))
-    #logging.info('os.environ[CLOUD_ML_TRIAL_ID]: {}'.format(os.environ['CLOUD_ML_TRIAL_ID']))
-    logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
+    logging.info(list(FLAGS))
+    logging.info('flags: \n {}'.format(FLAGS))
     logging.info('env variables: \n{}'.format(os.environ))
+
+    # only for HP tuning!
+    if os.environ.get('CLOUD_ML_HP_METRIC_TAG') is not None:
+        logging.info('this is a hyper parameters job !')
+
+        # setup the hp flag
+        FLAGS.is_hyperparameter_tuning=True
+        logging.info('FLAGS.is_hyperparameter_tuning: {}'.format(FLAGS.is_hyperparameter_tuning))
+
+        logging.info('os.environ[CLOUD_ML_HP_METRIC_TAG]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_TAG']))
+        logging.info('os.environ[CLOUD_ML_HP_METRIC_FILE]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_FILE']))
+        logging.info('os.environ[CLOUD_ML_TRIAL_ID]: {}'.format(os.environ['CLOUD_ML_TRIAL_ID']))
+
+    if os.environ.get('TF_CONFIG') is not None:
+        logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
+    else:
+        logging.error('os.environ[TF_CONFIG] doesn\'t exist !')
 
     # choose language's model and tokenizer
     MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased')]

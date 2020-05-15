@@ -1,5 +1,6 @@
 import tensorflow as tf
 from transformers import (
+    __version__,
     TFBertForSequenceClassification,
 )
 import utils.model_utils as mu
@@ -11,6 +12,7 @@ import pickle
 from absl import logging
 import time
 import json
+import sys
 from datetime import timedelta
 import hypertune
 from tensorboard.plugins.hparams import api as hp
@@ -141,12 +143,28 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     """Compiles keras model and loads data into it for training."""
     logging.info('training the model ...')
     model_callbacks = []
-    suffix = mu.get_trial_id()
+
+    # create meta data dictionary
+    dict_model = {}
+    dict_data = {}
+    dict_parameter = {}
+    dict_hardware = {}
+    dict_results = {}
+    dict_type_job = {}
+    dict_software = {}
+
+    if FLAGS.is_hyperparameter_tuning:
+        # get trial ID
+        suffix = mu.get_trial_id()
+
+        if suffix == '':
+            logging.error('No trial ID for hyper parameter job!')
+            FLAGS.is_hyperparameter_tuning=False
 
     if output_dir:
         # tensorflow callback
         log_dir = os.path.join(output_dir, 'tensorboard')
-        if suffix != '':
+        if FLAGS.is_hyperparameter_tuning:
             log_dir = os.path.join(log_dir, suffix)
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
                                                               histogram_freq=1,
@@ -158,13 +176,14 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
         # checkpoints callback
         checkpoint_dir = os.path.join(output_dir, 'checkpoint_model')
-        if suffix != '':
-            checkpoint_dir = os.path.join(checkpoint_dir, suffix)
-        checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt_{epoch:02d}')
-        checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
-                                                                 verbose=1,
-                                                                 save_weights_only=True)
-        model_callbacks.append(checkpoint_callback)
+        if not FLAGS.is_hyperparameter_tuning:
+            # not saving model during hyper parameter tuning
+            #checkpoint_dir = os.path.join(checkpoint_dir, suffix)
+            checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt_{epoch:02d}')
+            checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
+                                                                     verbose=1,
+                                                                     save_weights_only=True)
+            model_callbacks.append(checkpoint_callback)
 
         # decay learning rate callback
         #---------------------------------------------------------------------------------------------------------------
@@ -254,8 +273,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #    print(f.read())
 
     # for hp parameter tuning in TensorBoard
-    #print(eval('FLAGS.learning_rate'))
-    if suffix != '':
+
+    if FLAGS.is_hyperparameter_tuning:
         params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
         list_hp = []
         hparams = {}
@@ -278,7 +297,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                 hparams=list_hp,
                 metrics=[hp.Metric(metric_accuracy, display_name='Accuracy')],
             )
-        if suffix != '':
+        if FLAGS.is_hyperparameter_tuning:
             hparams_dir = os.path.join(hparams_dir, suffix)
 
         with tf.summary.create_file_writer(hparams_dir).as_default():
@@ -313,9 +332,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     if output_dir:
         # save the model
         savemodel_path = os.path.join(output_dir, 'saved_model')
-        if suffix != '':
-            savemodel_path = os.path.join(savemodel_path, suffix)
-        model.save(os.path.join(savemodel_path, model.name))
+        if not FLAGS.is_hyperparameter_tuning:
+            # not saving model during hyper parameter tuning
+            #savemodel_path = os.path.join(savemodel_path, suffix)
+            model.save(os.path.join(savemodel_path, model.name))
 
         # save history
         search = re.search('gs://(.*?)/(.*)', output_dir)
@@ -323,6 +343,60 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
             bucket_name = search.group(1)
             blob_name = search.group(2)
             output_folder=blob_name+'/history'
-            if suffix != '':
+            if FLAGS.is_hyperparameter_tuning:
                 output_folder = os.path.join(output_folder, suffix)
             mu.copy_local_directory_to_gcs(history_dir, bucket_name, output_folder)
+
+    # add meta data
+    dict_model['pretrained_transformer_model'] = FLAGS.pretrained_model_dir
+    dict_model['num_classes'] = FLAGS.num_classes
+
+    dict_data['train'] = FLAGS.input_train_tfrecords
+    dict_data['eval'] = FLAGS.input_eval_tfrecords
+
+    dict_parameter['use_decay_learning_rate'] = FLAGS.use_decay_learning_rate
+    dict_parameter['epochs'] = FLAGS.epochs
+    dict_parameter['steps_per_epoch_train'] = FLAGS.steps_per_epoch_train
+    dict_parameter['steps_per_epoch_eval'] = FLAGS.steps_per_epoch_eval
+    dict_parameter['n_steps_history'] = FLAGS.n_steps_history
+    dict_parameter['batch_size_train'] = FLAGS.batch_size_train
+    dict_parameter['batch_size_eval'] = FLAGS.batch_size_eval
+    dict_parameter['learning_rate'] = FLAGS.learning_rate
+    dict_parameter['epsilon'] = FLAGS.epsilon
+
+    dict_hardware['is_tpu'] = FLAGS.use_tpu
+
+    dict_results['tensorflow'] = 1
+    dict_results['tensorflow'] = 1
+    dict_results['tensorflow'] = 1
+
+    dict_type_job['is_hyperparameter_tuning'] = FLAGS.is_hyperparameter_tuning
+    dict_type_job['is_tpu'] = FLAGS.use_tpu
+
+    dict_software['tensorflow'] = tf.__version__
+    dict_software['transformer'] = __version__
+    dict_software['python'] = sys.version
+
+    # aggregate dictionaries
+    dict_all = {'model': dict_model,
+                'data': dict_data,
+                'parameter': dict_parameter,
+                'hardware': dict_hardware,
+                'results': dict_results,
+                'type_job': dict_type_job,
+                'software': dict_software}
+
+    # save metadata
+    search = re.search('gs://(.*?)/(.*)', output_dir)
+    if search is not None:
+        bucket_name = search.group(1)
+        blob_name = search.group(2)
+        output_folder = blob_name + '/metadata'
+
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(output_folder+'/model_job_metadata.json')
+        blob.upload_from_string(
+            data=json.dumps(dict_all),
+            content_type='application/json'
+        )
