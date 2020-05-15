@@ -142,6 +142,14 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     logging.info('training the model ...')
     model_callbacks = []
 
+    # create meta data dictionary
+    dict_model={}
+    dict_data={}
+    dict_parameter={}
+    dict_hardware={}
+    dict_results={}
+    dict_type_jon={}
+
     if FLAGS.is_hyperparameter_tuning:
         # get trial ID
         suffix = mu.get_trial_id()
@@ -172,7 +180,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
             checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
                                                                      verbose=1,
                                                                      save_weights_only=True)
-             model_callbacks.append(checkpoint_callback)
+            model_callbacks.append(checkpoint_callback)
 
         # decay learning rate callback
         #decay_callback = tf.keras.callbacks.LearningRateScheduler(mu.decay)
@@ -314,3 +322,11 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
             if FLAGS.is_hyperparameter_tuning:
                 output_folder = os.path.join(output_folder, suffix)
             mu.copy_local_directory_to_gcs(history_dir, bucket_name, output_folder)
+
+    # aggregate dictionaries
+    dict_all={'model': dict_model,
+              'data': dict_data,
+              'parameter': dict_parameter,
+              'hardware': dict_hardware,
+              'results' :dict_results,
+              'type_jobs': dict_type_jon}
