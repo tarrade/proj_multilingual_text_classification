@@ -43,24 +43,34 @@ def decay(epoch):
         return 1e-5
     
 # Applying the learning rate scheduler per batch and not per epoch
-#class LearningRateSchedulerPerBatch(LearningRateScheduler):
-#    """ Callback class to modify the default learning rate scheduler to operate each batch"""
-#    def __init__(self, schedule, verbose=0):
-#        super(LearningRateSchedulerPerBatch, self).__init__(schedule, verbose)
-#        self.count = 0  # Global batch index (the regular batch argument refers to the batch index within the epoch)
+# 
+class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
+    """ Callback class to modify the default learning rate scheduler to operate each batch
+    
+        Explanation: Apparently, the batch counter gets reset each epoch which means that a default counter needs to be implemented that counts onwards. If self.count gets updated after each batch, the learning rate after the third batch will have already been decreased the third time which is not what we want. Therefore, we added another counter k that does not influence the learning rate scheduler.
+        N is defined in model.py and specifies the number of batches after which the learning rate gets updated.
+    """
+    def __init__(self, schedule, N, verbose=0):
+        super(LearningRateSchedulerPerBatch, self).__init__(schedule, verbose)
+        self.count = 0  # Global batch index (the regular batch argument refers to the batch index within the epoch)
+        self.N = N
+        self.k = 0  # another counter that counts the number of batches that have run through
 
-#    def on_epoch_begin(self, epoch, logs=None):
-#        pass
-#
-#    def on_epoch_end(self, epoch, logs=None):
-#        pass
-#
-#    def on_batch_begin(self, batch, logs=None):
-#        super(LearningRateSchedulerPerBatch, self).on_epoch_begin(self.count, logs)
-#
-#    def on_batch_end(self, batch, logs=None):
-#        super(LearningRateSchedulerPerBatch, self).on_epoch_end(self.count, logs)
-#        self.count += 1
+    def on_epoch_begin(self, epoch, logs=None):
+        pass
+
+    def on_epoch_end(self, epoch, logs=None):
+        pass
+
+    def on_batch_begin(self, batch, logs=None):
+        if self.k % self.N == 0:
+            super(LearningRateSchedulerPerBatch, self).on_epoch_begin(self.count, logs)
+
+    def on_batch_end(self, batch, logs=None):
+        if self.k % self.N == 0:
+            super(LearningRateSchedulerPerBatch, self).on_epoch_end(self.count, logs)
+            self.count += 1
+        self.k += 1
 
 
 # Callback for printing the LR at the end of each epoch.

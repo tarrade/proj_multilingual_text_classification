@@ -175,8 +175,14 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
             return exponential_decay_fn
      
         exponential_decay_fn = exponential_decay(lr0=learning_rate, s=s)
-        lr_scheduler = tf.keras.callbacks.LearningRateScheduler(exponential_decay_fn, verbose=1)
-        model_callbacks.append(lr_scheduler)
+        #lr_scheduler = tf.keras.callbacks.LearningRateScheduler(exponential_decay_fn, verbose=1)
+        #model_callbacks.append(lr_scheduler)
+        
+        # added these two lines for batch updates
+        lr_decay_batch = mu.LearningRateSchedulerPerBatch(exponential_decay_fn, 3, verbose=0)
+                    #lambda step: ((learning_rate - min_learning_rate) * decay_rate ** step + min_learning_rate))
+        model_callbacks.append(lr_decay_batch)
+        
         #print_lr = mu.PrintLR()
         model_callbacks.append(mu.PrintLR())
         #---------------------------------------------------------------------------------------------------------------
