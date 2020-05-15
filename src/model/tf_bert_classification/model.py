@@ -141,12 +141,19 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     """Compiles keras model and loads data into it for training."""
     logging.info('training the model ...')
     model_callbacks = []
-    suffix = mu.get_trial_id()
+
+    if FLAGS.is_hyperparameter_tuning:
+        # get trial ID
+        suffix = mu.get_trial_id()
+
+        if suffix == '':
+            logging.error('No trial ID for hyper parameter job!')
+            FLAGS.is_hyperparameter_tuning=False
 
     if output_dir:
         # tensorflow callback
         log_dir = os.path.join(output_dir, 'tensorboard')
-        if suffix != '':
+        if FLAGS.is_hyperparameter_tuning:
             log_dir = os.path.join(log_dir, suffix)
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
                                                               histogram_freq=1,
@@ -158,13 +165,14 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
         # checkpoints callback
         checkpoint_dir = os.path.join(output_dir, 'checkpoint_model')
-        if suffix != '':
-            checkpoint_dir = os.path.join(checkpoint_dir, suffix)
-        checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt_{epoch:02d}')
-        checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
-                                                                 verbose=1,
-                                                                 save_weights_only=True)
-        model_callbacks.append(checkpoint_callback)
+        if not FLAGS.is_hyperparameter_tuning:
+            # not saving model during hyper parameter tuning
+            #checkpoint_dir = os.path.join(checkpoint_dir, suffix)
+            checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt_{epoch:02d}')
+            checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
+                                                                     verbose=1,
+                                                                     save_weights_only=True)
+             model_callbacks.append(checkpoint_callback)
 
         # decay learning rate callback
         #decay_callback = tf.keras.callbacks.LearningRateScheduler(mu.decay)
@@ -234,7 +242,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #    print(f.read())
 
     # for hp parameter tuning in TensorBoard
-    if suffix != '':
+    if FLAGS.is_hyperparameter_tuning:
         params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
         list_hp = []
         hparams = {}
@@ -257,7 +265,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                 hparams=list_hp,
                 metrics=[hp.Metric(metric_accuracy, display_name='Accuracy')],
             )
-        if suffix != '':
+        if FLAGS.is_hyperparameter_tuning:
             hparams_dir = os.path.join(hparams_dir, suffix)
 
         with tf.summary.create_file_writer(hparams_dir).as_default():
@@ -292,9 +300,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     if output_dir:
         # save the model
         savemodel_path = os.path.join(output_dir, 'saved_model')
-        if suffix != '':
-            savemodel_path = os.path.join(savemodel_path, suffix)
-        model.save(os.path.join(savemodel_path, model.name))
+        if not FLAGS.is_hyperparameter_tuning:
+            # not saving model during hyper parameter tuning
+            #savemodel_path = os.path.join(savemodel_path, suffix)
+            model.save(os.path.join(savemodel_path, model.name))
 
         # save history
         search = re.search('gs://(.*?)/(.*)', output_dir)
@@ -302,6 +311,6 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
             bucket_name = search.group(1)
             blob_name = search.group(2)
             output_folder=blob_name+'/history'
-            if suffix != '':
+            if FLAGS.is_hyperparameter_tuning:
                 output_folder = os.path.join(output_folder, suffix)
             mu.copy_local_directory_to_gcs(history_dir, bucket_name, output_folder)
