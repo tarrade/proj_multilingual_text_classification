@@ -19,6 +19,7 @@ from transformers import (
 import model.tf_bert_classification.model as tf_bert
 import utils.model_utils as mu
 import re
+import google.cloud.logging
 
 FLAGS = flags.FLAGS
 
@@ -64,17 +65,46 @@ flags.DEFINE_boolean('is_hyperparameter_tuning', False, 'automatic and inter fla
 
 def main(argv):
 
-    if os.environ.get('LOG_FILE_TO_WRITE') is not None:
-        logging.info('os.environ[LOG_FILE_TO_WRITE]: {}'.format(os.environ['LOG_FILE_TO_WRITE']))
-        split_path = os.environ['LOG_FILE_TO_WRITE'].split('/')
-        logging.get_absl_handler().use_absl_log_file(split_path[-1], '/'.join(split_path[:-1]))
+    # Instantiates a client
+    client = google.cloud.logging.Client()
 
+    # Connects the logger to the root logging handler; by default this captures
+    # all logs at INFO level and higher
+    client.setup_logging()
+
+    ## DEBUG
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     formatter = logger.Formatter(fmt)
     logging.get_absl_handler().setFormatter(formatter)
 
     # set level of verbosity
-    logging.set_verbosity(FLAGS.verbosity)
+    logging.set_verbosity(logging.DEBUG)
+
+    print(' 0 print --- ')
+    logging.info(' 1 logging:'.format(tf.__version__))
+    logging.info(' 2 logging:'.format(tf.__version__))
+
+    print(' 3 print --- ')
+    logging.debug(' 4 logging-test-debug')
+    logging.info(' 5 logging-test-info')
+    logging.warning(' 6 logging-test-warning')
+    logging.error(' 7 logging test-error')
+    print(' 8 print --- ')
+    strategy = tf.distribute.MirroredStrategy()
+    print(' 9 print --- ')
+    ## DEBUG
+
+    if os.environ.get('LOG_FILE_TO_WRITE') is not None:
+        logging.info('os.environ[LOG_FILE_TO_WRITE]: {}'.format(os.environ['LOG_FILE_TO_WRITE']))
+        #split_path = os.environ['LOG_FILE_TO_WRITE'].split('/')
+        #logging.get_absl_handler().use_absl_log_file(split_path[-1], '/'.join(split_path[:-1]))
+
+    #fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
+    #formatter = logger.Formatter(fmt)
+    #logging.get_absl_handler().setFormatter(formatter)
+
+    # set level of verbosity
+    #logging.set_verbosity(FLAGS.verbosity)
     #logging.set_stderrthreshold(FLAGS.verbosity)
 
     logging.info(tf.__version__)
