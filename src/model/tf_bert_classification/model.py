@@ -13,6 +13,7 @@ from absl import logging
 import time
 import json
 import sys
+from google.cloud import storage
 from datetime import timedelta
 import hypertune
 from tensorboard.plugins.hparams import api as hp
@@ -261,7 +262,6 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #    for f in files:
     #        #if 'output.metric' in f:
     #        print(root + f)
-
     #logging.info('[2] list all files: \n')
     #for root, dirs, files in os.walk("/tmp/hypertune/"):
     #    # print(root, dirs)
@@ -269,14 +269,14 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #        #if 'output.metric' in f:
     #        print(root + f)
 
-    #logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
-    metric_accuracy='accuracy_train'
-    value_accuracy=histories_per_step.accuracies[-1]
-    hpt = hypertune.HyperTune()
-    hpt.report_hyperparameter_tuning_metric(
-        hyperparameter_metric_tag=metric_accuracy,
-        metric_value=value_accuracy,
-        global_step=0)
+    metric_accuracy = 'accuracy_train'
+    value_accuracy = histories_per_step.accuracies[-1]
+    if FLAGS.is_hyperparameter_tuning:
+        hpt = hypertune.HyperTune()
+        hpt.report_hyperparameter_tuning_metric(
+            hyperparameter_metric_tag=metric_accuracy,
+            metric_value=value_accuracy,
+            global_step=0)
 
     #logging.info('[2] list all files: \n')
     #for root, dirs, files in os.walk("/var/hypertune/"):
@@ -284,13 +284,11 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #    for f in files:
     #        #if 'output.metric' in f:
     #        print(root + f)
-
     #path_metric='/var/hypertune/output.metric'
     #with open(path_metric, 'r') as f:
     #    print(f.read())
 
     # for hp parameter tuning in TensorBoard
-
     if FLAGS.is_hyperparameter_tuning:
         params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
         list_hp = []
@@ -305,8 +303,6 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                     hparams[key_hp] = FLAGS[hp_dict.get('parameter_name')].value
                 except KeyError:
                     logging.error('hyperparameter key {} doesn\'t exist'.format(hp_dict.get('parameter_name')))
-                # to be deleted
-                #hparams[key_hp]=eval('FLAGS.'+hp_dict.get('parameter_name'))
 
         hparams_dir = os.path.join(output_dir, 'hparams_tuning')
         with tf.summary.create_file_writer(hparams_dir).as_default():
@@ -384,9 +380,9 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     dict_hardware['is_tpu'] = FLAGS.use_tpu
 
-    dict_results['tensorflow'] = 1
-    dict_results['tensorflow'] = 1
-    dict_results['tensorflow'] = 1
+    dict_results['total_time'] = str(timedelta(seconds=round(elapsed_time_secs)))
+    dict_results['time_per_steps'] = str(list(map(lambda x: str(timedelta(seconds=round(x))),timing.timing_epoch)))
+    dict_results['accuracy_train'] = value_accuracy
 
     dict_type_job['is_hyperparameter_tuning'] = FLAGS.is_hyperparameter_tuning
     dict_type_job['is_tpu'] = FLAGS.use_tpu
