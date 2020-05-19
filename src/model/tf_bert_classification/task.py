@@ -36,6 +36,7 @@ STEP_EPOCH_VALID = 1
 # hyper parameter
 learning_rate=3e-5
 epsilon=1e-08
+decay_type='exponential'
 
 # number of classes
 NUM_CLASSES =2
@@ -45,6 +46,7 @@ n_steps_history=10
 
 # parameters for the training
 flags.DEFINE_float('learning_rate', learning_rate, 'learning rate')
+flags.DEFINE_float('s', s, 'decay of the learning rate, e.g. 0.9')
 flags.DEFINE_float('epsilon', epsilon, 'epsilon')
 flags.DEFINE_integer('epochs', EPOCHS, 'The number of epochs to train')
 flags.DEFINE_integer('steps_per_epoch_train', STEP_EPOCH_TRAIN, 'The number of steps per epoch to train')
@@ -53,6 +55,8 @@ flags.DEFINE_integer('steps_per_epoch_eval', STEP_EPOCH_VALID, 'The number of st
 flags.DEFINE_integer('batch_size_eval', BATCH_SIZE_VALID, 'Batch size for evaluation')
 flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model')
 flags.DEFINE_integer('n_steps_history', n_steps_history, 'number of step for which we want custom history')
+flags.DEFINE_integer('n_batch_decay', n_batch_decay, 'number of batches after which the learning rate gets update')
+flags.DEFINE_string('decay_type', DECAY_TYPE, 'type of decay for the learning rate: exponential, stepwise, timebased, or constant')
 flags.DEFINE_string('input_train_tfrecords', '', 'input folder of tfrecords training data')
 flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evaluation data')
 flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output of the model')
@@ -182,7 +186,11 @@ def main(argv):
                                    eval_data=valid_dataset,
                                    output_dir=FLAGS.output_dir,
                                    n_steps_history=FLAGS.n_steps_history,
-                                   FLAGS=FLAGS)
+                                   FLAGS=FLAGS,
+                                   decay_type=FLAGS.decay_type,
+                                   learning_rate=FLAGS.learning_rate,
+                                   s=FLAGS.s,
+                                   n_batch_decay=FLAGS.n_batch_decay)
 
 if __name__ == '__main__':
     app.run(main)

@@ -16,6 +16,8 @@ import sys
 from datetime import timedelta
 import hypertune
 from tensorboard.plugins.hparams import api as hp
+import math
+
 
 def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
 
@@ -139,7 +141,7 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     return model
 
 
-def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history, FLAGS, learning_rate=3e-5, s=1):
+def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history, FLAGS, decay_type, learning_rate=3e-5, s=1, n_batch_decay=1):
     """Compiles keras model and loads data into it for training."""
     logging.info('training the model ...')
     model_callbacks = []
@@ -188,26 +190,40 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         # decay learning rate callback
         #---------------------------------------------------------------------------------------------------------------
         # exponential decay function
-        def exponential_decay(lr0, s):
-            def exponential_decay_fn(steps_per_epoch):
-                return lr0 * 0.1**(steps_per_epoch / s)
-            return exponential_decay_fn
-     
-        exponential_decay_fn = exponential_decay(lr0=learning_rate, s=s)
+        #def exponential_decay(lr0, s):
+        #    def exponential_decay_fn(steps_per_epoch):
+        #        return lr0 * 0.1**(steps_per_epoch / s)
+        #    return exponential_decay_fn
+        
+        # code snippet to make the switching between different learning rate decays possible
+        if decay_type=='exponential':
+            decay_fn = mu.exponential_decay(lr0=learning_rate, s=s)
+        elif decay_type=='stepwise':
+            decay_fn = mu.step_decay(lr0=learning_rate, s=s)
+        elif decay_type=='timebased':
+            decay_fn = mu.time_decay(lr0=learning_rate, s=s)
+        else:
+            decay_fn = mu.no_decay(lr0=learning_rate)
+            
+        #exponential_decay_fn = mu.exponential_decay(lr0=learning_rate, s=s)
         #lr_scheduler = tf.keras.callbacks.LearningRateScheduler(exponential_decay_fn, verbose=1)
         #model_callbacks.append(lr_scheduler)
         
         # added these two lines for batch updates
-        lr_decay_batch = mu.LearningRateSchedulerPerBatch(exponential_decay_fn, 3, verbose=0)
+        lr_decay_batch = mu.LearningRateSchedulerPerBatch(decay_fn, n_batch_decay, verbose=0)
+        #lr_decay_batch = mu.LearningRateSchedulerPerBatch(exponential_decay_fn, n_batch_decay, verbose=0)
                     #lambda step: ((learning_rate - min_learning_rate) * decay_rate ** step + min_learning_rate))
         model_callbacks.append(lr_decay_batch)
         
         #print_lr = mu.PrintLR()
-        model_callbacks.append(mu.PrintLR())
+        #model_callbacks.append(mu.PrintLR())
         #---------------------------------------------------------------------------------------------------------------
   
     # callback to store all the learning rates
-    all_learning_rates = mu.LR_per_step(model.optimizer, n_steps_history)
+    #all_learning_rates = mu.LearningRateSchedulerPerBatch(model.optimizer, n_steps_history)
+    all_learning_rates = mu.LR_per_step()
+##    all_learning_rates = mu.LR_per_step(model.optimizer)
+    model_callbacks.append(all_learning_rates)
     
     # callback to create  history per step (not per epoch)
     histories_per_step = mu.History_per_step(eval_data, n_steps_history)
@@ -235,6 +251,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     logging.info('\nexecution time: {}'.format(timedelta(seconds=round(elapsed_time_secs))))
 
     logging.info('timing per epoch:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))),timing.timing_epoch))))
+    logging.info('timing per validation:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))),timing.timing_valid))))
     logging.info('sum timing over all epochs:\n{}'.format(timedelta(seconds=round(sum(timing.timing_epoch)))))
 
     # this is for hyperparameter tuning
@@ -326,7 +343,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                                                                     histories_per_step.accuracies,
                                                                     histories_per_step.val_steps,
                                                                     histories_per_step.val_losses,
-                                                                    histories_per_step.val_accuracies)
+                                                                    histories_per_step.val_accuracies,
+                                                                    all_learning_rates.all_lr)
         pickle.dump(model_history_per_step, file, pickle.HIGHEST_PROTOCOL)
 
     if output_dir:
