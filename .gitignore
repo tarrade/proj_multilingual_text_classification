@@ -12,3 +12,6 @@ notebook/03-Models/*.png
 *.html
 *.json
 diagnose_tensorboard.py
+err
+out
+src/dist/

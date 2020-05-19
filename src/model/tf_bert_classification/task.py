@@ -19,6 +19,7 @@ from transformers import (
 import model.tf_bert_classification.model as tf_bert
 import utils.model_utils as mu
 import re
+import sys
 import google.cloud.logging
 
 FLAGS = flags.FLAGS
@@ -72,6 +73,12 @@ def main(argv):
     # all logs at INFO level and higher
     client.setup_logging()
 
+    logging.get_absl_handler().python_handler.stream = sys.stdout
+
+    tf.get_logger().addHandler(logger.StreamHandler(sys.stdout))
+    #tf.get_logger().disabled = True
+    tf.autograph.set_verbosity(5 ,alsologtostdout=True)
+
     ## DEBUG
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     formatter = logger.Formatter(fmt)
@@ -92,6 +99,8 @@ def main(argv):
     print(' 8 print --- ')
     strategy = tf.distribute.MirroredStrategy()
     print(' 9 print --- ')
+    print('loggerDict:', logger.root.manager.loggerDict.keys())
+    print(' 10 print --- ')
     ## DEBUG
 
     if os.environ.get('LOG_FILE_TO_WRITE') is not None:
@@ -104,14 +113,14 @@ def main(argv):
     #logging.get_absl_handler().setFormatter(formatter)
 
     # set level of verbosity
-    #logging.set_verbosity(FLAGS.verbosity)
+    logging.set_verbosity(FLAGS.verbosity)
     #logging.set_stderrthreshold(FLAGS.verbosity)
 
     logging.info(tf.__version__)
     logging.info(tf.keras.__version__)
     logging.info(list(FLAGS))
-    logging.info('flags: \n {}'.format(FLAGS))
-    logging.info('env variables: \n{}'.format(os.environ))
+    logging.debug('flags: \n {}'.format(FLAGS))
+    logging.debug('env variables: \n{}'.format(os.environ))
 
     # only for HP tuning!
     if os.environ.get('CLOUD_ML_HP_METRIC_TAG') is not None:
