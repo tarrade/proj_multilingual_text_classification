@@ -38,7 +38,9 @@ STEP_EPOCH_VALID = 1
 # hyper parameter
 learning_rate=3e-5
 epsilon=1e-08
+s=0.95
 decay_type='exponential'
+n_batch_decay=2
 
 # number of classes
 NUM_CLASSES =2
@@ -58,7 +60,7 @@ flags.DEFINE_integer('batch_size_eval', BATCH_SIZE_VALID, 'Batch size for evalua
 flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model')
 flags.DEFINE_integer('n_steps_history', n_steps_history, 'number of step for which we want custom history')
 flags.DEFINE_integer('n_batch_decay', n_batch_decay, 'number of batches after which the learning rate gets update')
-flags.DEFINE_string('decay_type', DECAY_TYPE, 'type of decay for the learning rate: exponential, stepwise, timebased, or constant')
+flags.DEFINE_string('decay_type', decay_type, 'type of decay for the learning rate: exponential, stepwise, timebased, or constant')
 flags.DEFINE_string('input_train_tfrecords', '', 'input folder of tfrecords training data')
 flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evaluation data')
 flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output of the model')
