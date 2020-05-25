@@ -7,10 +7,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
 os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
 import tensorflow as tf
 tf.get_logger().propagate = False
-from absl import logging
-from absl import flags
-from absl import app
-import logging as logger
 from transformers import (
     BertTokenizer,
     TFBertModel,
@@ -20,10 +16,15 @@ import model.tf_bert_classification.model as tf_bert
 import utils.model_utils as mu
 import re
 import sys
+
 import google.cloud.logging
+from google.cloud.logging.handlers import CloudLoggingHandler, ContainerEngineHandler
+from absl import logging
+from absl import flags
+from absl import app
+import logging as logger
 
 FLAGS = flags.FLAGS
-
 
 # Maximum length, be becareful BERT max length is 512!
 MAX_LENGTH = 512
@@ -42,8 +43,9 @@ s=0.95
 decay_type='exponential'
 n_batch_decay=2
 
+
 # number of classes
-NUM_CLASSES =2
+NUM_CLASSES = 2
 
 # config
 n_steps_history=10
@@ -72,30 +74,95 @@ flags.DEFINE_boolean('is_hyperparameter_tuning', False, 'automatic and inter fla
 
 def main(argv):
 
+    #fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
+    fmt = "[%(levelname)s] %(message)s"
+    formatter = logger.Formatter(fmt)
+    logging.get_absl_handler().setFormatter(formatter)
+    logging.get_absl_handler().python_handler.stream = sys.stdout
+    logging.set_stderrthreshold(logging.WARNING)
+
+    # set level of verbosity
+    logging.set_verbosity(FLAGS.verbosity)
+    level_log = 'INFO'
+
     # Instantiates a client
     client = google.cloud.logging.Client()
 
     # Connects the logger to the root logging handler; by default this captures
     # all logs at INFO level and higher
-    client.setup_logging()
+    client.setup_logging(log_level=FLAGS.verbosity)
 
-    logging.get_absl_handler().python_handler.stream = sys.stdout
+    print('loggerDict:', logger.root.manager.loggerDict.keys())
 
-    tf.get_logger().addHandler(logger.StreamHandler(sys.stdout))
+    for i in logger.root.manager.loggerDict.keys():
+        if i=='tensorflow':
+           #print('-> propagate False')
+            logger.getLogger(i).propagate = False  # needed
+        elif i=='google.auth':
+            logger.getLogger(i).propagate = False  # needed
+        elif i=='google_auth_httplib2':
+            logger.getLogger(i).propagate = False  # needed
+        elif i=='pyasn1':
+            logger.getLogger(i).propagate = False  # needed
+        elif i=='sklearn':
+            logger.getLogger(i).propagate = False  # needed
+        elif i=='google.cloud':
+            logger.getLogger(i).propagate = False  # needed
+        else:
+            logger.getLogger(i).propagate = True # needed
+        handler = logger.getLogger(i).handlers
+        if handler != []:
+            #print("logger's name=", i,handler)
+            for h in handler:
+                #print('    -> ', h)
+                if h.__class__ == logger.StreamHandler:
+                    #print('    -> name=', h.__class__)
+                    h.setStream(sys.stdout)
+                    h.setLevel(level_log)
+                    #print('    --> handlers =', h)
+
+    root_logger = logger.getLogger()
+    root_logger.handlers=[handler for handler in root_logger.handlers if isinstance(handler, (CloudLoggingHandler, ContainerEngineHandler, logging.ABSLHandler))]
+
+    for handler in root_logger.handlers:
+        #print("----- handler ", handler)
+        if handler.__class__ == CloudLoggingHandler:
+            handler.setStream(sys.stdout)
+            handler.setLevel(level_log)
+        if handler.__class__ == logging.ABSLHandler:
+            handler.python_handler.stream = sys.stdout
+            handler.setLevel(level_log)
+    #        handler.handler.setStream(sys.stdout)
+
+    for handler in root_logger.handlers:
+        print("----- handler ", handler)
+
+    # Instantiates a client
+    #client = google.cloud.logging.Client()
+
+    # Connects the logger to the root logging handler; by default this captures
+    # all logs at INFO level and higher
+    #client.setup_logging()
+
+    # redirect abseil logging messages to the stdout stream
+    #logging.get_absl_handler().python_handler.stream = sys.stdout
+
+    # some test
+    #tf.get_logger().addHandler(logger.StreamHandler(sys.stdout))
     #tf.get_logger().disabled = True
-    tf.autograph.set_verbosity(5 ,alsologtostdout=True)
+    #tf.autograph.set_verbosity(5 ,alsologtostdout=True)
 
     ## DEBUG
-    fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
-    formatter = logger.Formatter(fmt)
-    logging.get_absl_handler().setFormatter(formatter)
+    #fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
+    #formatter = logger.Formatter(fmt)
+    #logging.get_absl_handler().setFormatter(formatter)
 
     # set level of verbosity
-    logging.set_verbosity(logging.DEBUG)
+    #logging.set_verbosity(logging.DEBUG)
 
     print(' 0 print --- ')
-    logging.info(' 1 logging:'.format(tf.__version__))
-    logging.info(' 2 logging:'.format(tf.__version__))
+    logging.info(' 1 logging:')
+    logging.info(' 2 logging:')
 
     print(' 3 print --- ')
     logging.debug(' 4 logging-test-debug')
@@ -103,10 +170,10 @@ def main(argv):
     logging.warning(' 6 logging-test-warning')
     logging.error(' 7 logging test-error')
     print(' 8 print --- ')
-    strategy = tf.distribute.MirroredStrategy()
+    #_=BertTokenizer.from_pretrained('bert-base-uncased')
     print(' 9 print --- ')
-    print('loggerDict:', logger.root.manager.loggerDict.keys())
-    print(' 10 print --- ')
+    _= tf.distribute.MirroredStrategy()
+    print('10 print --- ')
     ## DEBUG
 
     if os.environ.get('LOG_FILE_TO_WRITE') is not None:
@@ -119,7 +186,7 @@ def main(argv):
     #logging.get_absl_handler().setFormatter(formatter)
 
     # set level of verbosity
-    logging.set_verbosity(FLAGS.verbosity)
+    #logging.set_verbosity(FLAGS.verbosity)
     #logging.set_stderrthreshold(FLAGS.verbosity)
 
     logging.info(tf.__version__)
