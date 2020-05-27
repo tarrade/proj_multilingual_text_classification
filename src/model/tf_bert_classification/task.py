@@ -277,6 +277,11 @@ def main(argv):
         strategy = tf.distribute.MirroredStrategy()
     logging.info('Number of devices: {}'.format(strategy.num_replicas_in_sync))
 
+    print('before scope')
+    for j in train_dataset:
+        print('j=',j)
+    print('before scope done')
+
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
         logging.debug('pretrained_model_dir={}'.format(pretrained_model_dir))
@@ -285,6 +290,11 @@ def main(argv):
                                      num_labels=FLAGS.num_classes,
                                      learning_rate=FLAGS.learning_rate,
                                      epsilon=FLAGS.epsilon)
+
+        print('after scope')
+        for j in train_dataset:
+            print('j=', j)
+        print('after scope done')
 
         tf_bert.train_and_evaluate(model,
                                    num_epochs=FLAGS.epochs,

@@ -23,11 +23,11 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
 
     #print('debug1:', input_tfrecords)
     #file_pattern = tf.io.gfile.glob(input_tfrecords+'/*.tfrecord')
-    #print('debug2:',  file_pattern)
     #pattern = input_tfrecords+'/*.tfrecord'
     file_pattern = input_tfrecords+'/*.tfrecord'
-    #print('test 2-1:', list(tf.data.Dataset.list_files(tf.io.gfile.glob(file_pattern))))
-    #print('test 2-2:', list(tf.data.Dataset.list_files(file_pattern)))
+    #print('debug 1:', file_pattern)
+    print('test 2-1:', list(tf.data.Dataset.list_files(tf.io.gfile.glob(file_pattern))))
+    #print('debug 2:', list(tf.data.Dataset.list_files(file_pattern)))
     # standard
     #dataset = tf.data.TFRecordDataset(file_pattern)
     #dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -36,13 +36,19 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     #return dataset
 
     # standard 1
-    #dataset = tf.data.TFRecordDataset(file_pattern)
-    #dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    #dataset = dataset.shuffle(shuffle_buffer)
-    #dataset = dataset.batch(batch_size)
-    #dataset = dataset.cache()
-    #dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-    #return dataset
+    dataset = tf.data.TFRecordDataset(tf.io.gfile.glob(file_pattern))
+    dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.shuffle(shuffle_buffer)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.cache()
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+
+    print('debug 3:')
+    for i in dataset:
+        print('i=',i)
+        break
+    print('debug 4:')
+    return dataset
 
     # standard 2
     #dataset = tf.data.TFRecordDataset(file_pattern)
@@ -54,20 +60,20 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     #return dataset
 
     # best way ?
-    dataset = tf.data.Dataset.list_files(file_pattern,
-                                         shuffle=True,
-                                         seed=None
-                                         )
-    dataset = dataset.interleave(tf.data.TFRecordDataset,
-                                 cycle_length=tf.data.experimental.AUTOTUNE,
-                                 num_parallel_calls=tf.data.experimental.AUTOTUNE,
-                                 deterministic=False)
-    dataset = dataset.shuffle(shuffle_buffer)
-    dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.cache()
-    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-    return dataset
+    #dataset = tf.data.Dataset.list_files(file_pattern,
+    #                                     shuffle=True,
+    #                                     seed=None
+    #                                     )
+    #dataset = dataset.interleave(tf.data.TFRecordDataset,
+    #                             cycle_length=tf.data.experimental.AUTOTUNE,
+    #                             num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    #                             deterministic=False)
+    #dataset = dataset.shuffle(shuffle_buffer)
+    #dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.batch(batch_size)
+    #dataset = dataset.cache()
+    #dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    #return dataset
 
     # standard 4 -> issue: flat  accuracy and loss
     #dataset = tf.data.Dataset.from_tensor_slices(file_pattern)
