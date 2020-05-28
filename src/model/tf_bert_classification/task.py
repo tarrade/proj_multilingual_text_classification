@@ -7,8 +7,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
 os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
 import tensorflow as tf
 tf.get_logger().propagate = False
-tf.debugging.set_log_device_placement(True)
-tf.autograph.set_verbosity(10, alsologtostdout=False)
+#tf.debugging.set_log_device_placement(True)
+#tf.autograph.set_verbosity(10, alsologtostdout=False)
 from transformers import (
     BertTokenizer,
     TFBertModel,
@@ -65,14 +65,20 @@ flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model
 flags.DEFINE_integer('n_steps_history', n_steps_history, 'number of step for which we want custom history')
 flags.DEFINE_integer('n_batch_decay', n_batch_decay, 'number of batches after which the learning rate gets update')
 flags.DEFINE_string('decay_type', decay_type, 'type of decay for the learning rate: exponential, stepwise, timebased, or constant')
-flags.DEFINE_string('input_train_tfrecords', '', 'input folder of tfrecords training data')
-flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evaluation data')
-flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output of the model')
-flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
+flags.DEFINE_string('input_train_tfrecords', None, 'input folder of tfrecords training data')
+flags.DEFINE_string('input_eval_tfrecords', None, 'input folder of tfrecords evaluation data')
+flags.DEFINE_string('output_dir', None, 'gs blob where are stored all the output of the model')
+flags.DEFINE_string('pretrained_model_dir', None, 'number of classes in our model')
 flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
 flags.DEFINE_boolean('use_tpu', False, 'activate TPU for training')
 flags.DEFINE_boolean('use_decay_learning_rate', False, 'activate decay learning rate')
 flags.DEFINE_boolean('is_hyperparameter_tuning', False, 'automatic and inter flag')
+
+# mandatory flags, for the other use default values
+flags.mark_flag_as_required('input_train_tfrecords')
+flags.mark_flag_as_required('input_eval_tfrecords')
+flags.mark_flag_as_required('output_dir')
+flags.mark_flag_as_required('pretrained_model_dir')
 
 def main(argv):
 
