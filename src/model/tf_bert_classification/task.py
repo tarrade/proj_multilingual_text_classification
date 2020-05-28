@@ -184,6 +184,19 @@ def main(argv):
     # print('10 print --- ')
     # ## DEBUG
 
+    # print flags
+    abseil_flags = ['logtostderr', 'alsologtostderr', 'log_dir', 'v', 'verbosity', 'stderrthreshold',
+                    'showprefixforinfo', 'run_with_pdb', 'pdb_post_mortem', 'run_with_profiling', 'profile_file',
+                    'use_cprofile_for_profiling', 'only_check_args', 'flagfile', 'undefok']
+    logging.info('-- Custom flags:')
+    for name in list(FLAGS):
+        if name not in abseil_flags:
+            logging.info('custom flags: {:40} with value: {:50}'.format(name, str(FLAGS[name].value)))
+    logging.info('\n-- Abseil flags:')
+    for name in list(FLAGS):
+        if name in abseil_flags:
+            logging.info('abseil flags: {:40} with value: {:50}'.format(name, str(FLAGS[name].value)))
+
     if os.environ.get('LOG_FILE_TO_WRITE') is not None:
         logging.info('os.environ[LOG_FILE_TO_WRITE]: {}'.format(os.environ['LOG_FILE_TO_WRITE']))
         #split_path = os.environ['LOG_FILE_TO_WRITE'].split('/')

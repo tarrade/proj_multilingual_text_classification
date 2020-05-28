@@ -393,10 +393,6 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     dict_hardware['is_tpu'] = FLAGS.use_tpu
 
-    dict_results['tensorflow'] = 1
-    dict_results['tensorflow'] = 1
-    dict_results['tensorflow'] = 1
-
     dict_type_job['is_hyperparameter_tuning'] = FLAGS.is_hyperparameter_tuning
     dict_type_job['is_tpu'] = FLAGS.use_tpu
 
