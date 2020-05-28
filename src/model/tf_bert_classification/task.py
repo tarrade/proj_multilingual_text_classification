@@ -7,6 +7,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
 os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
 import tensorflow as tf
 tf.get_logger().propagate = False
+#tf.debugging.set_log_device_placement(True)
+#tf.autograph.set_verbosity(10, alsologtostdout=False)
 from transformers import (
     BertTokenizer,
     TFBertModel,
@@ -63,14 +65,20 @@ flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model
 flags.DEFINE_integer('n_steps_history', n_steps_history, 'number of step for which we want custom history')
 flags.DEFINE_integer('n_batch_decay', n_batch_decay, 'number of batches after which the learning rate gets update')
 flags.DEFINE_string('decay_type', decay_type, 'type of decay for the learning rate: exponential, stepwise, timebased, or constant')
-flags.DEFINE_string('input_train_tfrecords', '', 'input folder of tfrecords training data')
-flags.DEFINE_string('input_eval_tfrecords', '', 'input folder of tfrecords evaluation data')
-flags.DEFINE_string('output_dir', '', 'gs blob where are stored all the output of the model')
-flags.DEFINE_string('pretrained_model_dir', '', 'number of classes in our model')
+flags.DEFINE_string('input_train_tfrecords', None, 'input folder of tfrecords training data')
+flags.DEFINE_string('input_eval_tfrecords', None, 'input folder of tfrecords evaluation data')
+flags.DEFINE_string('output_dir', None, 'gs blob where are stored all the output of the model')
+flags.DEFINE_string('pretrained_model_dir', None, 'number of classes in our model')
 flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
 flags.DEFINE_boolean('use_tpu', False, 'activate TPU for training')
 flags.DEFINE_boolean('use_decay_learning_rate', False, 'activate decay learning rate')
 flags.DEFINE_boolean('is_hyperparameter_tuning', False, 'automatic and inter flag')
+
+# mandatory flags, for the other use default values
+flags.mark_flag_as_required('input_train_tfrecords')
+flags.mark_flag_as_required('input_eval_tfrecords')
+flags.mark_flag_as_required('output_dir')
+flags.mark_flag_as_required('pretrained_model_dir')
 
 def main(argv):
 
@@ -85,96 +93,109 @@ def main(argv):
     logging.set_verbosity(FLAGS.verbosity)
     level_log = 'INFO'
 
-    # Instantiates a client
-    client = google.cloud.logging.Client()
+    # # Instantiates a client
+    # client = google.cloud.logging.Client()
+    #
+    # # Connects the logger to the root logging handler; by default this captures
+    # # all logs at INFO level and higher
+    # client.setup_logging(log_level=FLAGS.verbosity)
+    #
+    # print('loggerDict:', logger.root.manager.loggerDict.keys())
+    #
+    # for i in logger.root.manager.loggerDict.keys():
+    #     if i=='tensorflow':
+    #        #print('-> propagate False')
+    #         logger.getLogger(i).propagate = False  # needed
+    #     elif i=='google.auth':
+    #         logger.getLogger(i).propagate = False  # needed
+    #     elif i=='google_auth_httplib2':
+    #         logger.getLogger(i).propagate = False  # needed
+    #     elif i=='pyasn1':
+    #         logger.getLogger(i).propagate = False  # needed
+    #     elif i=='sklearn':
+    #         logger.getLogger(i).propagate = False  # needed
+    #     elif i=='google.cloud':
+    #         logger.getLogger(i).propagate = False  # needed
+    #     else:
+    #         logger.getLogger(i).propagate = True # needed
+    #     handler = logger.getLogger(i).handlers
+    #     if handler != []:
+    #         #print("logger's name=", i,handler)
+    #         for h in handler:
+    #             #print('    -> ', h)
+    #             if h.__class__ == logger.StreamHandler:
+    #                 #print('    -> name=', h.__class__)
+    #                 h.setStream(sys.stdout)
+    #                 h.setLevel(level_log)
+    #                 #print('    --> handlers =', h)
+    #
+    # root_logger = logger.getLogger()
+    # root_logger.handlers=[handler for handler in root_logger.handlers if isinstance(handler, (CloudLoggingHandler, ContainerEngineHandler, logging.ABSLHandler))]
+    #
+    # for handler in root_logger.handlers:
+    #     #print("----- handler ", handler)
+    #     if handler.__class__ == CloudLoggingHandler:
+    #         handler.setStream(sys.stdout)
+    #         handler.setLevel(level_log)
+    #     if handler.__class__ == logging.ABSLHandler:
+    #         handler.python_handler.stream = sys.stdout
+    #         handler.setLevel(level_log)
+    # #        handler.handler.setStream(sys.stdout)
+    #
+    # for handler in root_logger.handlers:
+    #     print("----- handler ", handler)
+    #
+    # # Instantiates a client
+    # #client = google.cloud.logging.Client()
+    #
+    # # Connects the logger to the root logging handler; by default this captures
+    # # all logs at INFO level and higher
+    # #client.setup_logging()
+    #
+    # # redirect abseil logging messages to the stdout stream
+    # #logging.get_absl_handler().python_handler.stream = sys.stdout
+    #
+    # # some test
+    # #tf.get_logger().addHandler(logger.StreamHandler(sys.stdout))
+    # #tf.get_logger().disabled = True
+    # #tf.autograph.set_verbosity(5 ,alsologtostdout=True)
+    #
+    # ## DEBUG
+    # #fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
+    # #formatter = logger.Formatter(fmt)
+    # #logging.get_absl_handler().setFormatter(formatter)
+    #
+    # # set level of verbosity
+    # #logging.set_verbosity(logging.DEBUG)
+    #
+    # print(' 0 print --- ')
+    # logging.info(' 1 logging:')
+    # logging.info(' 2 logging:')
+    #
+    # print(' 3 print --- ')
+    # logging.debug(' 4 logging-test-debug')
+    # logging.info(' 5 logging-test-info')
+    # logging.warning(' 6 logging-test-warning')
+    # logging.error(' 7 logging test-error')
+    # print(' 8 print --- ')
+    # #_=BertTokenizer.from_pretrained('bert-base-uncased')
+    # print(' 9 print --- ')
+    # _= tf.distribute.MirroredStrategy()
+    # print('10 print --- ')
+    # ## DEBUG
 
-    # Connects the logger to the root logging handler; by default this captures
-    # all logs at INFO level and higher
-    client.setup_logging(log_level=FLAGS.verbosity)
-
-    print('loggerDict:', logger.root.manager.loggerDict.keys())
-
-    for i in logger.root.manager.loggerDict.keys():
-        if i=='tensorflow':
-           #print('-> propagate False')
-            logger.getLogger(i).propagate = False  # needed
-        elif i=='google.auth':
-            logger.getLogger(i).propagate = False  # needed
-        elif i=='google_auth_httplib2':
-            logger.getLogger(i).propagate = False  # needed
-        elif i=='pyasn1':
-            logger.getLogger(i).propagate = False  # needed
-        elif i=='sklearn':
-            logger.getLogger(i).propagate = False  # needed
-        elif i=='google.cloud':
-            logger.getLogger(i).propagate = False  # needed
-        else:
-            logger.getLogger(i).propagate = True # needed
-        handler = logger.getLogger(i).handlers
-        if handler != []:
-            #print("logger's name=", i,handler)
-            for h in handler:
-                #print('    -> ', h)
-                if h.__class__ == logger.StreamHandler:
-                    #print('    -> name=', h.__class__)
-                    h.setStream(sys.stdout)
-                    h.setLevel(level_log)
-                    #print('    --> handlers =', h)
-
-    root_logger = logger.getLogger()
-    root_logger.handlers=[handler for handler in root_logger.handlers if isinstance(handler, (CloudLoggingHandler, ContainerEngineHandler, logging.ABSLHandler))]
-
-    for handler in root_logger.handlers:
-        #print("----- handler ", handler)
-        if handler.__class__ == CloudLoggingHandler:
-            handler.setStream(sys.stdout)
-            handler.setLevel(level_log)
-        if handler.__class__ == logging.ABSLHandler:
-            handler.python_handler.stream = sys.stdout
-            handler.setLevel(level_log)
-    #        handler.handler.setStream(sys.stdout)
-
-    for handler in root_logger.handlers:
-        print("----- handler ", handler)
-
-    # Instantiates a client
-    #client = google.cloud.logging.Client()
-
-    # Connects the logger to the root logging handler; by default this captures
-    # all logs at INFO level and higher
-    #client.setup_logging()
-
-    # redirect abseil logging messages to the stdout stream
-    #logging.get_absl_handler().python_handler.stream = sys.stdout
-
-    # some test
-    #tf.get_logger().addHandler(logger.StreamHandler(sys.stdout))
-    #tf.get_logger().disabled = True
-    #tf.autograph.set_verbosity(5 ,alsologtostdout=True)
-
-    ## DEBUG
-    #fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
-    #formatter = logger.Formatter(fmt)
-    #logging.get_absl_handler().setFormatter(formatter)
-
-    # set level of verbosity
-    #logging.set_verbosity(logging.DEBUG)
-
-    print(' 0 print --- ')
-    logging.info(' 1 logging:')
-    logging.info(' 2 logging:')
-
-    print(' 3 print --- ')
-    logging.debug(' 4 logging-test-debug')
-    logging.info(' 5 logging-test-info')
-    logging.warning(' 6 logging-test-warning')
-    logging.error(' 7 logging test-error')
-    print(' 8 print --- ')
-    #_=BertTokenizer.from_pretrained('bert-base-uncased')
-    print(' 9 print --- ')
-    _= tf.distribute.MirroredStrategy()
-    print('10 print --- ')
-    ## DEBUG
+    # print flags
+    abseil_flags = ['logtostderr', 'alsologtostderr', 'log_dir', 'v', 'verbosity', 'stderrthreshold',
+                    'showprefixforinfo', 'run_with_pdb', 'pdb_post_mortem', 'run_with_profiling', 'profile_file',
+                    'use_cprofile_for_profiling', 'only_check_args', 'flagfile', 'undefok']
+    logging.info('-- Custom flags:')
+    for name in list(FLAGS):
+        if name not in abseil_flags:
+            logging.info('custom flags: {:40} with value: {:50}'.format(name, str(FLAGS[name].value)))
+    logging.info('\n-- Abseil flags:')
+    for name in list(FLAGS):
+        if name in abseil_flags:
+            logging.info('abseil flags: {:40} with value: {:50}'.format(name, str(FLAGS[name].value)))
 
     if os.environ.get('LOG_FILE_TO_WRITE') is not None:
         logging.info('os.environ[LOG_FILE_TO_WRITE]: {}'.format(os.environ['LOG_FILE_TO_WRITE']))
@@ -211,6 +232,19 @@ def main(argv):
         logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
     else:
         logging.error('os.environ[TF_CONFIG] doesn\'t exist !')
+
+    # define TPU strategy before any ops
+    if FLAGS.use_tpu:
+        logging.info('setting up TPU: cluster resolver')
+        tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
+        logging.info('setting up TPU: \n {}'.format(tpu_cluster_resolver))
+        logging.info('running on TPU: \n {}'.format(tpu_cluster_resolver.cluster_spec().as_dict()['worker']))
+        tf.config.experimental_connect_to_cluster(tpu_cluster_resolver)
+        tf.tpu.experimental.initialize_tpu_system(tpu_cluster_resolver)
+        strategy = tf.distribute.experimental.TPUStrategy(tpu_cluster_resolver)
+    else:
+        strategy = tf.distribute.MirroredStrategy()
+    logging.info('Number of devices: {}'.format(strategy.num_replicas_in_sync))
 
     # choose language's model and tokenizer
     MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased')]
@@ -261,21 +295,11 @@ def main(argv):
     # reset Keras
     tf.keras.backend.clear_session()
 
-    if FLAGS.use_tpu:
-        logging.info('setting up TPU: cluster resolver')
-        tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
-        logging.info('setting up TPU: \n {}'.format(tpu_cluster_resolver))
-        logging.info('running on TPU: \n {}'.format(tpu_cluster_resolver.cluster_spec().as_dict()['worker']))
-        #tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver(
-        #    FLAGS.tpu if (FLAGS.tpu or params.use_tpu) else '',
-        #    zone=FLAGS.tpu_zone,
-        #    project=FLAGS.gcp_project)
-        tf.config.experimental_connect_to_cluster(tpu_cluster_resolver)
-        tf.tpu.experimental.initialize_tpu_system(tpu_cluster_resolver)
-        strategy = tf.distribute.experimental.TPUStrategy(tpu_cluster_resolver)
-    else:
-        strategy = tf.distribute.MirroredStrategy()
-    logging.info('Number of devices: {}'.format(strategy.num_replicas_in_sync))
+    print('before scope')
+    for j in train_dataset:
+        print('j=',j)
+        break
+    print('before scope done')
 
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
@@ -285,6 +309,12 @@ def main(argv):
                                      num_labels=FLAGS.num_classes,
                                      learning_rate=FLAGS.learning_rate,
                                      epsilon=FLAGS.epsilon)
+
+        print('after scope')
+        for j in train_dataset:
+            print('j=', j)
+            break
+        print('after scope done')
 
         tf_bert.train_and_evaluate(model,
                                    num_epochs=FLAGS.epochs,
