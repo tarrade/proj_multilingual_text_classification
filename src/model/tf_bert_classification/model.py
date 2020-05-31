@@ -353,7 +353,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                                                                     histories_per_step.val_losses,
                                                                     histories_per_step.val_accuracies,
                                                                     all_learning_rates.all_lr,
-                                                                    all_learning_rates.all_lr_alternative)
+                                                                    all_learning_rates.all_lr_alternative,
+                                                                    all_learning_rates.all_lr_logs)
         pickle.dump(model_history_per_step, file, pickle.HIGHEST_PROTOCOL)
 
     if output_dir:

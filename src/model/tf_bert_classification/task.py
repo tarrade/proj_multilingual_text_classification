@@ -39,18 +39,17 @@ STEP_EPOCH_TRAIN = 10
 STEP_EPOCH_VALID = 1
 
 # hyper parameter
-learning_rate=3e-5
-epsilon=1e-08
-s=0.95
-decay_type='exponential'
-n_batch_decay=2
-
+learning_rate = 3e-5
+epsilon = 1e-08
+s = 0.95
+decay_type = 'exponential'
+n_batch_decay = 2
 
 # number of classes
 NUM_CLASSES = 2
 
 # config
-n_steps_history=10
+n_steps_history = 10
 
 # parameters for the training
 flags.DEFINE_float('learning_rate', learning_rate, 'learning rate')
@@ -277,14 +276,8 @@ def main(argv):
                                                            FLAGS.steps_per_epoch_eval))
     logging.info('Total number of batch: {:6}/{:6}'.format(FLAGS.steps_per_epoch_train * (FLAGS.epochs + 1),
                                                            FLAGS.steps_per_epoch_eval * 1))
-    # read TFRecords files
-    #train_files = tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord')
-    #valid_files = tf.io.gfile.glob(FLAGS.input_eval_tfrecords+'/*.tfrecord')
-    #train_dataset = tf_bert.build_dataset(train_files, FLAGS.batch_size_train, 2048)
-    #valid_dataset = tf_bert.build_dataset(valid_files, FLAGS.batch_size_eval, 2048)
-    #print('test 1:', list(tf.data.Dataset.list_files(tf.io.gfile.glob(FLAGS.input_train_tfrecords+'/*.tfrecord'))))
 
-    #  set shuffle, map and batch size
+    #  read TFRecords files, shuffle, map and batch size
     train_dataset = tf_bert.build_dataset(FLAGS.input_train_tfrecords, FLAGS.batch_size_train, 2048)
     valid_dataset = tf_bert.build_dataset(FLAGS.input_eval_tfrecords, FLAGS.batch_size_eval, 2048)
 
@@ -292,14 +285,8 @@ def main(argv):
     train_dataset = train_dataset.repeat(FLAGS.epochs + 1)
     valid_dataset = valid_dataset.repeat(2)
 
-    # reset Keras
+    # reset all variables used by Keras
     tf.keras.backend.clear_session()
-
-    print('before scope')
-    for j in train_dataset:
-        print('j=',j)
-        break
-    print('before scope done')
 
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
@@ -309,26 +296,21 @@ def main(argv):
                                      num_labels=FLAGS.num_classes,
                                      learning_rate=FLAGS.learning_rate,
                                      epsilon=FLAGS.epsilon)
+    # train the model
+    tf_bert.train_and_evaluate(model,
+                               num_epochs=FLAGS.epochs,
+                               steps_per_epoch=FLAGS.steps_per_epoch_train,
+                               train_data=train_dataset,
+                               validation_steps=FLAGS.steps_per_epoch_eval,
+                               eval_data=valid_dataset,
+                               output_dir=FLAGS.output_dir,
+                               n_steps_history=FLAGS.n_steps_history,
+                               FLAGS=FLAGS,
+                               decay_type=FLAGS.decay_type,
+                               learning_rate=FLAGS.learning_rate,
+                               s=FLAGS.s,
+                               n_batch_decay=FLAGS.n_batch_decay)
 
-        print('after scope')
-        for j in train_dataset:
-            print('j=', j)
-            break
-        print('after scope done')
-
-        tf_bert.train_and_evaluate(model,
-                                   num_epochs=FLAGS.epochs,
-                                   steps_per_epoch=FLAGS.steps_per_epoch_train,
-                                   train_data=train_dataset,
-                                   validation_steps=FLAGS.steps_per_epoch_eval,
-                                   eval_data=valid_dataset,
-                                   output_dir=FLAGS.output_dir,
-                                   n_steps_history=FLAGS.n_steps_history,
-                                   FLAGS=FLAGS,
-                                   decay_type=FLAGS.decay_type,
-                                   learning_rate=FLAGS.learning_rate,
-                                   s=FLAGS.s,
-                                   n_batch_decay=FLAGS.n_batch_decay)
 
 if __name__ == '__main__':
     app.run(main)
