@@ -9,6 +9,7 @@ from sklearn.metrics import (
     accuracy_score
 )
 import numpy as np
+import pandas as pd
 import utils.ressources_utils as mem_utils
 import analysis.get_data as get_data
 
