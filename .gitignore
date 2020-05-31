@@ -10,7 +10,6 @@ config.txt
 notebook/00-Test/*.png
 notebook/03-Models/*.png
 *.html
-*.json
 diagnose_tensorboard.py
 err
 out

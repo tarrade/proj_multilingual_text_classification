@@ -43,6 +43,7 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     dataset = dataset.batch(batch_size)
     dataset = dataset.cache()
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset
 
     # standard 2
     # dataset = tf.data.TFRecordDataset(file_pattern)

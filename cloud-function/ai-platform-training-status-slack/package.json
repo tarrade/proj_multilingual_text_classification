@@ -1,0 +1,10 @@
+{
+  "name": "ai-palform-training-slack",
+  "version": "0.0.1",
+  "description": "Slack integration for AI Platform Training, using Google Cloud Functions",
+  "main": "index.js",
+  "dependencies": {
+    "@slack/webhook": "5.0.3",
+    "@google-cloud/pubsub": "^0.18.0"
+  }
+}
