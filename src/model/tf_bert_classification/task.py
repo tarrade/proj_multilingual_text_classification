@@ -3,24 +3,22 @@ import os
 # 1 = INFO messages are not printed
 # 2 = INFO and WARNING messages are not printed
 # 3 = INFO, WARNING, and ERROR messages are not printed
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
-os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
+# os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
 import tensorflow as tf
-tf.get_logger().propagate = False
-#tf.debugging.set_log_device_placement(True)
-#tf.autograph.set_verbosity(10, alsologtostdout=False)
+# tf.debugging.set_log_device_placement(True)
+# tf.autograph.set_verbosity(10, alsologtostdout=False)
 from transformers import (
     BertTokenizer,
     TFBertModel,
-    glue_convert_examples_to_features,
 )
 import model.tf_bert_classification.model as tf_bert
 import utils.model_utils as mu
 import re
 import sys
 
-import google.cloud.logging
-from google.cloud.logging.handlers import CloudLoggingHandler, ContainerEngineHandler
+# import google.cloud.logging
+# from google.cloud.logging.handlers import CloudLoggingHandler, ContainerEngineHandler
 from absl import logging
 from absl import flags
 from absl import app
@@ -28,7 +26,7 @@ import logging as logger
 
 FLAGS = flags.FLAGS
 
-# Maximum length, be becareful BERT max length is 512!
+# Maximum length, be be careful BERT max length is 512!
 MAX_LENGTH = 512
 
 # define default parameters
@@ -79,9 +77,12 @@ flags.mark_flag_as_required('input_eval_tfrecords')
 flags.mark_flag_as_required('output_dir')
 flags.mark_flag_as_required('pretrained_model_dir')
 
+
 def main(argv):
 
-    #fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
+    tf.get_logger().propagate = False
+
+    # fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     fmt = "[%(levelname)s] %(message)s"
     formatter = logger.Formatter(fmt)
     logging.get_absl_handler().setFormatter(formatter)
@@ -90,7 +91,7 @@ def main(argv):
 
     # set level of verbosity
     logging.set_verbosity(FLAGS.verbosity)
-    level_log = 'INFO'
+    # level_log = 'INFO'
 
     # # Instantiates a client
     # client = google.cloud.logging.Client()
@@ -198,16 +199,16 @@ def main(argv):
 
     if os.environ.get('LOG_FILE_TO_WRITE') is not None:
         logging.info('os.environ[LOG_FILE_TO_WRITE]: {}'.format(os.environ['LOG_FILE_TO_WRITE']))
-        #split_path = os.environ['LOG_FILE_TO_WRITE'].split('/')
-        #logging.get_absl_handler().use_absl_log_file(split_path[-1], '/'.join(split_path[:-1]))
+        # split_path = os.environ['LOG_FILE_TO_WRITE'].split('/')
+        # logging.get_absl_handler().use_absl_log_file(split_path[-1], '/'.join(split_path[:-1]))
 
-    #fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
-    #formatter = logger.Formatter(fmt)
-    #logging.get_absl_handler().setFormatter(formatter)
+    # fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
+    # formatter = logger.Formatter(fmt)
+    # logging.get_absl_handler().setFormatter(formatter)
 
     # set level of verbosity
-    #logging.set_verbosity(FLAGS.verbosity)
-    #logging.set_stderrthreshold(FLAGS.verbosity)
+    # logging.set_verbosity(FLAGS.verbosity)
+    # logging.set_stderrthreshold(FLAGS.verbosity)
 
     logging.info(tf.__version__)
     logging.info(tf.keras.__version__)
@@ -220,7 +221,7 @@ def main(argv):
         logging.info('this is a hyper parameters job !')
 
         # setup the hp flag
-        FLAGS.is_hyperparameter_tuning=True
+        FLAGS.is_hyperparameter_tuning = True
         logging.info('FLAGS.is_hyperparameter_tuning: {}'.format(FLAGS.is_hyperparameter_tuning))
 
         logging.info('os.environ[CLOUD_ML_HP_METRIC_TAG]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_TAG']))
@@ -248,8 +249,8 @@ def main(argv):
     # choose language's model and tokenizer
     MODELS = [(TFBertModel, BertTokenizer, 'bert-base-multilingual-uncased')]
     model_index = 0  # BERT
-    model_class = MODELS[model_index][0]  # i.e TFBertModel
-    tokenizer_class = MODELS[model_index][1]  # i.e BertTokenizer
+    # model_class = MODELS[model_index][0]  # i.e TFBertModel
+    # tokenizer_class = MODELS[model_index][1]  # i.e BertTokenizer
     pretrained_weights = MODELS[model_index][2]  # 'i.e bert-base-multilingual-uncased'
 
     # download   pre trained model:
@@ -260,9 +261,9 @@ def main(argv):
         if search is not None:
             bucket_name = search.group(1)
             blob_name = search.group(2)
-            local_path='.'
+            local_path = '.'
             mu.download_blob(bucket_name, blob_name, local_path)
-            pretrained_model_dir = local_path+'/'+blob_name
+            pretrained_model_dir = local_path + '/' + blob_name
         else:
             pretrained_model_dir = FLAGS.pretrained_model_dir
     else:

@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def create_model(pretrained_weights, model_class, max_length, pretrained_model_dir, num_labels, learning_rate, epsilon, print_info=False):
     """Creates Keras Model for BERT Classification.
     Args:
@@ -35,7 +36,7 @@ def create_model(pretrained_weights, model_class, max_length, pretrained_model_d
     classifier = tf.keras.layers.Dense(units=num_labels)(flat)  # activation='softmax'
 
     if print_info:
-        print('bert_ini[0]:',bert_ini[0])
+        print('bert_ini[0]:', bert_ini[0])
         print('bert_ini[1]:', bert_ini[1])
 
     model = tf.keras.Model(inputs=input_layer,
