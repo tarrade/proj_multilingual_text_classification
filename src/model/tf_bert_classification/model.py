@@ -28,7 +28,7 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     #pattern = input_tfrecords+'/*.tfrecord'
     file_pattern = input_tfrecords+'/*.tfrecord'
     #print('debug 1:', file_pattern)
-    print('test 2-1:', list(tf.data.Dataset.list_files(tf.io.gfile.glob(file_pattern))))
+    #print('test 2-1:', list(tf.data.Dataset.list_files(tf.io.gfile.glob(file_pattern))))
     #print('debug 2:', list(tf.data.Dataset.list_files(file_pattern)))
     # standard
     #dataset = tf.data.TFRecordDataset(file_pattern)
