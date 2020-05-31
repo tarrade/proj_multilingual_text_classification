@@ -5,8 +5,8 @@ Created on Wed Nov 7 2018
          Fabien Tarrade fabien.tarrade@axa.ch
 """
 import itertools
-from sklearn.metrics import (log_loss, f1_score, accuracy_score, average_precision_score, precision_score,
-                             recall_score, roc_curve, auc, roc_auc_score, mean_squared_error, r2_score)
+from sklearn.metrics import (f1_score, accuracy_score, average_precision_score, precision_score,
+                             recall_score, roc_curve, auc, roc_auc_score, r2_score)
 from sklearn.model_selection import learning_curve
 import numpy as np
 import pandas as pd
@@ -15,13 +15,14 @@ import scikitplot as skplt
 from scipy import interp
 from itertools import cycle
 
+
 def plot_acc_loss(steps_loss_train, loss_train,
                   steps_acc_train=None, accuracy_train=None,
                   steps_loss_eval=None, loss_eval=None,
                   steps_acc_eval=None, accuracy_eval=None):
 
     # plot the training loss and accuracy
-    fig = plt.figure(figsize=(9, 3), dpi=100)
+    # fig = plt.figure(figsize=(9, 3), dpi=100)
     plt.subplots_adjust(wspace=0.6)
     ax1 = plt.subplot(121)
     ax2 = plt.subplot(122)
@@ -30,8 +31,8 @@ def plot_acc_loss(steps_loss_train, loss_train,
     if accuracy_train is not None:
         ax1.plot(steps_acc_train, accuracy_train, 'b', label='training accuracy')
     if accuracy_eval is not None:
-        ax1.plot(steps_acc_eval, accuracy_eval, 'r', label='validation accuracy');
-    #if accuracy_train is not None and accuracy_eval is not None:
+        ax1.plot(steps_acc_eval, accuracy_eval, 'r', label='validation accuracy')  # ;
+    # if accuracy_train is not None and accuracy_eval is not None:
     #    delta=0.05
     #    y_min = min([min(x_list) for x_list in [accuracy_train, accuracy_eval]]) - delta
     #    y_max = max([max(x_list) for x_list in [accuracy_train, accuracy_eval]]) + delta
@@ -48,7 +49,7 @@ def plot_acc_loss(steps_loss_train, loss_train,
     ax2.set_title("Loss")
     ax2.set_xlabel("Number of step ")
     ax2.set_ylabel("Loss")
-    ax2.legend(loc="best");
+    ax2.legend(loc="best")  # ;
 
     print('Loss:')
     if loss_train is not None:
@@ -61,6 +62,7 @@ def plot_acc_loss(steps_loss_train, loss_train,
         print('  - accuracy [training dataset]: {:.2f}%'.format(100 * accuracy_train[-1]))
     if accuracy_eval is not None:
         print('  - accuracy [validation dataset: {:.2f}%'.format(100 * accuracy_eval[-1]))
+
 
 def print_metrics(y_t, y_pred_t, mode=''):
     """
@@ -77,8 +79,8 @@ def print_metrics(y_t, y_pred_t, mode=''):
     """
     print('Model performance on the {} dataset:'.format(mode))
 
-    #mse = mean_squared_error(y_t, y_pred_t)
-    #logloss = log_loss(y_t, y_pred_t)
+    # mse = mean_squared_error(y_t, y_pred_t)
+    # logloss = log_loss(y_t, y_pred_t)
     accuracy = accuracy_score(y_t, y_pred_t)
     f1 = f1_score(y_t, y_pred_t)
     precision_micro = precision_score(y_t, y_pred_t, average='micro')
@@ -99,8 +101,8 @@ def print_metrics(y_t, y_pred_t, mode=''):
     print('precision (macro).. {0:8.4f}'.format(precision_macro))
     print('f1.................  {0:8.4f}'.format(f1))
     print('r2.................  {0:8.4f}'.format(r2))
-    #print('logloss............  {0:8.4f}'.format(logloss))
-    #print('mse................  {0:8.4f}'.format(mse))
+    # print('logloss............  {0:8.4f}'.format(logloss))
+    # print('mse................  {0:8.4f}'.format(mse))
 
 
 def plot_confusion_matrix(cm, classes,
@@ -386,6 +388,7 @@ def check_confidence(model, min_conf, x_test, y_test):
                                                round(Accuracy, 4),
                                                round(Classifications, 4),
                                                round(baseline, 4)))
+
 
 def roc_curves(y_test, y_score, dict_label):
     # plot configuration

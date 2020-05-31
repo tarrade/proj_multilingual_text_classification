@@ -110,8 +110,7 @@ def test_model(model, name_model, X_train, y_train, X_test, y_test, details=Fals
 
     else:
         model.fit(X_train, y_train, **fit_params)
-    print('############################################# \n model: {} \n'.format(name_model)
-          + '#############################################')
+    print('############################################# \n model: {} \n#############################################'.format(name_model))
     if details and hasattr(model, 'named_steps'):
         print('the list of steps and parameters in the pipeline\n')
         for k, v in model.named_steps.items():
@@ -525,7 +524,8 @@ def cv_to_bo(path, bo, param_range, cv):
 
     # drop duplicates (parameter settings) since
     # the score might not be unique
-    inits = inits[inits.duplicated(param_list) == False]
+    # inits = inits[inits.duplicated(param_list) == False]
+    inits = inits[True if inits.duplicated(param_list) is False else False]
     for k, v in param_range.items():
         inits = inits[(inits[k] >= v[0]) & (inits[k] <= v[1])]
     param_list.append('target')

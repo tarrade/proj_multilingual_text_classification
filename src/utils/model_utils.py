@@ -12,33 +12,36 @@ import math
 
 
 def save_model(estimator, gcspath, name):
-    
-    gcspath = re.sub('^gs:\/\/', '', gcspath)
-    
-    if len(gcspath.split('/'))<2:
-        return 'ERROR: invalid path --> '+gcspath
-    
+
+    gcspath = re.sub(r'^gs:\/\/', '', gcspath)
+
+    if len(gcspath.split('/')) < 2:
+        return 'ERROR: invalid path --> ' + gcspath
+
     # Instantiates a client
     storage_client = storage.Client()
 
     # get the bucket
     bucket = storage_client.get_bucket(gcspath.split('/')[0])
-    
+
     # extract the model
     model = 'model.joblib'
     joblib.dump(estimator, model)
-    
+
     # save the model
     model_path = os.path.join('/'.join(gcspath.split('/')[1:]), datetime.datetime.now().strftime('export_%Y%m%d_%H%M%S'), model)
     blob = bucket.blob(model_path)
     blob.upload_from_filename(model)
 
-    return 'gs://'+gcspath.split('/')[0]+model_path
+    return 'gs://' + gcspath.split('/')[0] + model_path
 
-# Functions for decaying the learning rate.
-# Manually set decay
+
 def manual_decay(epoch):
-    '''Manual decay: fixed learning rates for specific epochs'''
+    """
+    Manual decay: fixed learning rates for specific epochs
+    Functions for decaying the learning rate.
+    Manually set decay
+    """
     def manual_decay_fn():
         if epoch < 3:
             return 1e-3
@@ -46,77 +49,77 @@ def manual_decay(epoch):
             return 1e-4
         else:
             return 1e-5
-        
+
     return manual_decay_fn
 
-# Exponential decay
+
 def exponential_decay(lr0, s):
-    '''
+    """
     Exponential decay: reduce learning rate by s every specified iteration
-    
+
     Args:
         lr0 = initial learning rate
         s = decay rate, e.g. 0.9 (mostly higher than in other methods)
-    '''
+    """
     def exponential_decay_fn(steps_per_epoch):
         return lr0 * 0.1**(steps_per_epoch / s)
     return exponential_decay_fn
-        
-# Stepwise decay
+
+
 def step_decay(lr0, s, epochs_drop=1.0):
-    '''
+    """
     Stepwise decay: Drop learning rate by half (s) every specified iteration
-    
+
     Args:
         lr0 = initial learning rate
         s = decay rate, e.g. 0.5, choose lower s than for other decays
         epochs_drop = step size
-    '''
-    #initial_lrate = 0.1
-    #drop = 0.5
-    #epochs_drop = 1.0
+    """
+    # initial_lrate = 0.1
+    # drop = 0.5
+    # epochs_drop = 1.0
     def step_decay_fn(steps_per_epoch):
-        return lr0 * math.pow(s, math.floor((1+steps_per_epoch)/epochs_drop))
+        return lr0 * math.pow(s, math.floor((1 + steps_per_epoch) / epochs_drop))
     return step_decay_fn
 
-# Time-based decay
+
 def time_decay(lr0, s):
-    '''
+    """
     Time-based decay: update the learning rate by a decreasing factor each specified iteration
-    
+
     Args:
         lr0 = initial learning rate
         s = decay rate, typically between 0.5 and 0.9
-    '''
+    """
     def time_decay_fn(steps_per_epoch):
         return lr0 / (1 + s * steps_per_epoch)
     return time_decay_fn
 
-# linear setting
+
 def no_decay(lr0):
-    '''
+    """
     Function that just returns the initial learning rate to ensure that it stays constant.
-    '''
+    """
     def no_decay_fn(steps_per_epoch):
         return lr0
     return no_decay_fn
 
-# test setting: first lr high, afterwards 0
+
 def test_decay(lr0):
-    '''
+    """"
     Test function to investigate the effect of the decay
-    '''
+    """
     def test_decay_fn(epoch):
-        #if epoch==1:
-        #    return lr0
-        #else:
-        #    return float(0)
+        # if epoch==1:
+        #     return lr0
+        # else:
+        #     return float(0)
         return float(0)
     return test_decay_fn
 
 
 ########################################################################################
-#class LearningRateScheduler(tf.keras.callbacks.Callback):
+# class LearningRateScheduler(tf.keras.callbacks.Callback):
 #    '''Learning rate scheduler which sets the learning rate according to schedule.
 #    Arguments:
 #      schedule: a function that takes an epoch index
@@ -127,7 +130,6 @@ def test_decay(lr0):
 #        super(LearningRateScheduler, self).__init__()
 #        self.schedule = schedule
 #        self.verbose = verbose
-        
 #    def on_batch_begin(self, batch, logs=None):
 #        #self.verbose = 1
 #        if not hasattr(self.model.optimizer, 'lr'):
@@ -136,23 +138,22 @@ def test_decay(lr0):
 #        lr = float(tf.keras.backend.get_value(self.model.optimizer.lr))
 #        # Call schedule function to get the scheduled learning rate.
 #        scheduled_lr = self.schedule(lr)
-##        scheduled_lr = self.schedule(epoch, lr)
+#        #scheduled_lr = self.schedule(epoch, lr)
 #        # Set the value back to the optimizer before this epoch starts
 #        tf.keras.backend.set_value(self.model.optimizer.lr, scheduled_lr)
 #        print('\nEpoch %05d: Learning rate is %6.4f.' % (batch, scheduled_lr))
-        
 #        current_step = self.model.optimizer.iterations.numpy()
 #        current_lr = tf.summary.scalar("learning_rate", self.model.optimizer._decayed_lr(var_dtype=tf.float32), step=current_step)
 #        print('tf.summary output: ', current_lr)
 ########################################################################################
 
-#---------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------
 # Applying the learning rate scheduler after a specified number of batches and not per epoch
- 
+
 class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
-    """ 
+    """
     Callback class to modify the default learning rate scheduler to operate each specified number of batches
-    
+
     Explanation: The batch counter gets reset each epoch which means that a default counter needs to be implemented that counts onwards. If self.k gets updated after each batch, the learning rate after the third batch will have already been decreased the third time which is not what we want. Therefore, we added another counter k that does not influence the learning rate scheduler.
     N is defined in model.py and specifies the number of batches after which the learning rate gets updated.
     """
@@ -174,85 +175,80 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
             print('\nprinting LR in schedule class (before batch_begin): {}, k: {}'.format(self.model.optimizer.lr.numpy(), self.k))
             super(LearningRateSchedulerPerBatch, self).on_epoch_begin(self.count, logs)
             print('\nprinting LR in schedule class (batch_begin): {}, k: {}'.format(self.model.optimizer.lr.numpy(), self.k))
-            #tf.keras.backend.set_value(self.model.optimizer.lr, float(tf.keras.backend.get_value(self.model.optimizer.lr)))
+            # tf.keras.backend.set_value(self.model.optimizer.lr, float(tf.keras.backend.get_value(self.model.optimizer.lr)))
 
     def on_batch_end(self, batch, logs=None):
         if self.k % self.N == 0:
             super(LearningRateSchedulerPerBatch, self).on_epoch_end(self.count, logs)
             print('\nprinting LR in schedule class (batch_end): {}, k: {}'.format(self.model.optimizer.lr.numpy(), self.k))
-           # tf.keras.backend.set_value(self.model.optimizer.lr, float(tf.keras.backend.get_value(self.model.optimizer.lr)))
-            
+            # tf.keras.backend.set_value(self.model.optimizer.lr, float(tf.keras.backend.get_value(self.model.optimizer.lr)))
+
             self.count += 1
         self.k += 1
-        
+
         logs = logs or {}
         logs['lr'] = tf.keras.backend.get_value(self.model.optimizer.lr)
-        
-       
+
         current_step = self.model.optimizer.iterations.numpy()
-        #with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
+        # with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
         with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
             tf.summary.scalar("learning_rate", logs['lr'], step=current_step)
-        #print('tf.summary output: ', current_lr)
-#-------------------------------------------------------------------------------------
+        # print('tf.summary output: ', current_lr)
+# -------------------------------------------------------------------------------------
 
 # Callback for printing the LR at the end of each epoch.
-#class PrintLR(tf.keras.callbacks.Callback):
+# class PrintLR(tf.keras.callbacks.Callback):
 #    def on_batch_end(self, batch, logs=None):
 #    def on_epoch_end(self, epoch, logs=None):
 #    def on_epoch_end(self, epoch, model, logs=None)
-        #self.all_lr.append(self.model.optimizer.lr.numpy())
+#        # self.all_lr.append(self.model.optimizer.lr.numpy())
 #        lr_schedule = getattr(self.model.optimizer, "lr", None)
 #        print('\nLearning rate for batch {} is {}'.format(batch + 1, self.model.optimizer.lr.numpy()))
 #        print(lr_schedule)
-    
 # Callback for storing the learning rates each time it changes
 # This second class was needed since we didn't find a way to reference tf.keras.callbacks.Callback in the first class
+
+
 class LR_per_step(tf.keras.callbacks.Callback):
-        
+
     def on_train_begin(self, logs={}):
         self.all_lr = []
         self.all_lr_alternative = []
         self.all_lr_logs = []
         print('training begin: printing logs: \n', logs)
-        
+
     def on_epoch_begin(self, epoch, logs={}):
         print('epoch begin: printing logs: \n', logs)
 
-        
     def on_batch_begin(self, batch, logs={}):
         print('\nbatch begin: printing logs: \n', logs)
 
-        
         lr_batch = self.model.optimizer.lr.numpy()
         self.all_lr.append(lr_batch)
         print('\nLearning rate for batch {} is {}'.format(batch + 1, lr_batch))
-        
+
         lr_alternative = float(tf.keras.backend.get_value(self.model.optimizer.lr))
-        print('\n=> alternative learning rate for batch {} is {}'.format(batch+1, lr_alternative))
+        print('\n=> alternative learning rate for batch {} is {}'.format(batch + 1, lr_alternative))
         self.all_lr_alternative.append(lr_alternative)
-        
-        #lr_logs = logs['lr']
-        #lr_logs_alt = logs.get('lr')
-        #print('\n=> begin: learning rate in the logs for batch {} is {}. alt: {}'.format(batch+1, lr_logs, lr_logs_alt))
-    
+
+        # lr_logs = logs['lr']
+        # lr_logs_alt = logs.get('lr')
+        # print('\n=> begin: learning rate in the logs for batch {} is {}. alt: {}'.format(batch+1, lr_logs, lr_logs_alt))
+
     def on_batch_end(self, batch, logs={}):
         print('batch end: printing logs: \n', logs)
-        print('eval print: ',tf.keras.backend.eval(self.model.optimizer.lr))
+        print('eval print: ', tf.keras.backend.eval(self.model.optimizer.lr))
 
-
-        
         lr_logs = logs['lr']
         lr_logs_alt = logs.get('lr')
-        print('\n=> end: learning rate in the logs for batch {} is {}. alt: {}'.format(batch+1, lr_logs, lr_logs_alt))
+        print('\n=> end: learning rate in the logs for batch {} is {}. alt: {}'.format(batch + 1, lr_logs, lr_logs_alt))
         self.all_lr_logs.append(lr_logs)
-        
-      
-            
 
-# Callback to print validation accuracy after N epochs
+
 class History_per_step(tf.keras.callbacks.Callback):
-
+    """
+    Callback to print validation accuracy after N epochs
+    """
     def __init__(self, validation_data, N):
         self.validation_data = validation_data
         self.N = N
@@ -281,10 +277,10 @@ class History_per_step(tf.keras.callbacks.Callback):
             self.val_accuracies.append(acc_val)
             self.val_steps.append(self.batch)
             print('\n validation set -> batch:{} val loss:{} and val acc: {}'.format(self.batch, loss_val, acc_val))
-            time_valid = timer()-time_start
+            time_valid = timer() - time_start
             self.timed_validation.append(time_valid)
             print('\n validation has lasted for: {} seconds'.format(time_valid))
-            
+
         self.batch += 1
 
     def on_test_batch_end(self, batch, logs={}):
@@ -293,32 +289,43 @@ class History_per_step(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
-        print('accuracy_train {} epoch {} \n'.format(logs.get('accuracy'),epoch))
+        print('accuracy_train {} epoch {} \n'.format(logs.get('accuracy'), epoch))
         return
+
 
 # Class to time eaach epoch
 class TimingCallback(tf.keras.callbacks.Callback):
     def __init__(self, logs={}):
-        self.timing_epoch=[]
-        self.timing_valid=[]
+        self.timing_epoch = []
+        self.timing_valid = []
+
     def on_test_begin(self, logs={}):
         self.starttime_valid = timer()
+
     def on_test_end(self, logs={}):
-        self.timing_valid.append(timer()-self.starttime_valid)
+        self.timing_valid.append(timer() - self.starttime_valid)
+
     def on_epoch_begin(self, epoch, logs={}):
         self.starttime = timer()
-    def on_epoch_end(self, epoch, logs={}):
-        self.timing_epoch.append(timer()-self.starttime)
 
-# Class to save history from Keras
+    def on_epoch_end(self, epoch, logs={}):
+        self.timing_epoch.append(timer() - self.starttime)
+
+
 class History_trained_model(object):
+    """
+    Class to save history from Keras
+    """
     def __init__(self, history, epoch, params):
         self.history = history
         self.epoch = epoch
         self.params = params
 
-# Class to save custom history created using callback
+
 class History_per_steps_trained_model(object):
+    """
+    Class to save custom history created using callback
+    """
     def __init__(self, steps, losses, accuracies, val_steps, val_losses, val_accuracies, all_lr, all_lr_alternative, all_lr_logs):
         self.steps = steps
         self.losses = losses
@@ -329,6 +336,7 @@ class History_per_steps_trained_model(object):
         self.all_learning_rates = all_lr
         self.all_lr_alternative = all_lr_alternative
         self.all_lr_logs = all_lr_logs
+
 
 def load_data_tensorboard(path):
     event_acc = event_accumulator.EventAccumulator(path)
@@ -343,8 +351,10 @@ def load_data_tensorboard(path):
         data[tag] = (np.asarray(x), np.asarray(y))
     return data
 
+
 def copy_local_directory_to_gcs(local_path, bucket_name, gcs_path):
-    """Recursively copy a directory of files to GCS.
+    """
+    Recursively copy a directory of files to GCS.
 
     local_path should be a directory and not have a trailing slash.
     """
@@ -356,14 +366,17 @@ def copy_local_directory_to_gcs(local_path, bucket_name, gcs_path):
     for root, dirs, files in os.walk(local_path):
         for name in files:
             local_file = os.path.join(root, name)
-            remote_path = os.path.join(gcs_path, local_file[1 + len(local_path) :])
+            remote_path = os.path.join(gcs_path, local_file[1 + len(local_path):])
             print(remote_path)
             blob = bucket.blob(remote_path)
             blob.upload_from_filename(local_file)
             print('copy of the file(s) on gs:// done !')
 
+
 def download_blob(bucket_name, blob_name, destination_file_name):
-    """Downloads a blob from the bucket."""
+    """
+    Downloads a blob from the bucket.
+    """
     # bucket_name = "your-bucket-name"
     # blob_name = "blob/object-name"
     # destination_file_name = "local/path/to/file"
@@ -372,18 +385,20 @@ def download_blob(bucket_name, blob_name, destination_file_name):
 
     bucket = storage_client.bucket(bucket_name)
     blobs = storage_client.list_blobs(bucket, prefix='pretrained_model/bert-base-multilingual-uncased/')
-    os.makedirs(destination_file_name+'/'+blob_name, exist_ok=True)
+    os.makedirs(destination_file_name + '/' + blob_name, exist_ok=True)
     for blob in blobs:
         print(blob.name)
         blob.download_to_filename(blob.name)
 
-    print('blob {} downloaded to {}'.format(blob_name, destination_file_name+'/'+blob_name)
-    )
+    print('blob {} downloaded to {}'.format(blob_name, destination_file_name + '/' + blob_name))
 
-# adding specific folder per trial
+
 def get_trial_id():
+    """
+    adding specific folder per trial
+    """
     suffix = json.loads(os.environ.get("TF_CONFIG", "{}")).get("task", {}).get("trial", "")
     if suffix == '':
         return suffix
     else:
-        return 'trial_id_'+suffix
+        return 'trial_id_' + suffix

@@ -3,8 +3,9 @@ from tensorflow.python.data.ops import dataset_ops
 import numpy as np
 import pprint
 
-# function to print details/info about glue tensorflow dataset
+
 def print_info_dataset(info):
+    # function to print details/info about glue tensorflow dataset
     print('Labels:\n      {}\n'.format(info.features["label"].names))
     print('Number of label:\n      {}\n'.format(info.features["label"].num_classes))
     print('Structure of the data:\n      {}\n'.format(info.features.keys()))
@@ -22,8 +23,9 @@ def print_info_dataset(info):
     except ValueError:
         print('--> validation dataset not defined')
 
-# function to print data structure/shape about glue tensorflow dataset
+
 def print_info_data(dataset, print_example=True, n_example=3):
+    # function to print data structure/shape about glue tensorflow dataset
     print('# Structure of the data:\n\n   {}'.format(dataset))
     print('\n# Output shape of one entry:\n   {}'.format(dataset_ops.get_legacy_output_shapes(dataset)))
     print('\n# Output types of one entry:\n   {}'.format(dataset_ops.get_legacy_output_types(dataset)))
@@ -77,12 +79,12 @@ def print_info_data(dataset, print_example=True, n_example=3):
             if i + 1 > n_example:
                 break
 
-# print details on one example of the tokenize data
+
 def print_detail_tokeniser(dataset, tokenizer, max_entries=20):
+    # print details on one example of the tokenize data
     np_array = np.array(list(dataset.take(1).as_numpy_iterator()))
-    if len(np_array[0][0]['input_ids'].shape)==2:
-        print('{:>10}     ---->    {:^15}   {:^15}   {:<30}\n'.format('input_ids', 'attention_mask', 'token_type_ids',
-                                                                  'modified text'))
+    if len(np_array[0][0]['input_ids'].shape) == 2:
+        print('{:>10}     ---->    {:^15}   {:^15}   {:<30}\n'.format('input_ids', 'attention_mask', 'token_type_ids', 'modified text'))
         for i, v in enumerate(np_array[0][0]['input_ids'][0]):
             print('{:>10}     ---->    {:^15d}   {:^15d}   {:<30}'.format(v,
                                                                           int(np_array[0][0]['attention_mask'][0][i]),
@@ -91,8 +93,7 @@ def print_detail_tokeniser(dataset, tokenizer, max_entries=20):
             if i > max_entries:
                 break
     elif len(np_array[0][0]['input_ids'].shape) == 1:
-        print('{:>10}     ---->    {:^15}   {:^15}   {:<30}\n'.format('input_ids', 'attention_mask', 'token_type_ids',
-                                                                        'modified text'))
+        print('{:>10}     ---->    {:^15}   {:^15}   {:<30}\n'.format('input_ids', 'attention_mask', 'token_type_ids', 'modified text'))
         for i, v in enumerate(np_array[0][0]['input_ids']):
             print('{:>10}     ---->    {:^15d}   {:^15d}   {:<30}'.format(v,
                                                                           int(np_array[0][0]['attention_mask'][i]),
@@ -100,24 +101,30 @@ def print_detail_tokeniser(dataset, tokenizer, max_entries=20):
                                                                           tokenizer.decode(int(v))))
             if i > max_entries:
                 break
-# create a data structure
+
+
 class InputFeatures(object):
-    def __init__(self, idx, label,sentence):
+    # create a data structure
+    def __init__(self, idx, label, sentence):
         self.idx = idx
         self.sentence = sentence
         self.label = label
 
-# define an iterable
+
 def _gen(features):
+    # define an iterable
     for f in features:
         yield ({"idx": f.idx,
                 "label": f.label,
                 "sentence": f.sentence,
                 })
 
-# transform and return data in the right structure
+
 def _create_tf_example(idx, label, sentence):
-    '''Puts the three inputs into the data structure required by GLUE and is called by the function convert_to_glue.'''
+    """
+    transform and return data in the right structure
+    Puts the three inputs into the data structure required by GLUE and is called by the function convert_to_glue.
+    """
 
     features = []
     for i, x in enumerate(sentence):
@@ -133,83 +140,81 @@ def _create_tf_example(idx, label, sentence):
     )
 
 
-
 def convert_np_array_to_glue_format(sentence, label, decode=False, shift=0):
-    '''
-    Description: This function converts a DatasetV1Adapter into a glue-compatible format by calculating 
-                 the three main components from an input dataset. 
+    """
+    Description: This function converts a DatasetV1Adapter into a glue-compatible format by calculating
+                 the three main components from an input dataset.
                  The function create_tf_example from preprocessing is called to create the final dataset.
-    
+
     Args:
         sentence: numpy array either in byte utf-8 format or strings.
         label:    numpy array either in byte utf-8 format or integers.
-        decode:   boolean which should be set to true if the numpy arrays that are passed are in byte format; 
+        decode:   boolean which should be set to true if the numpy arrays that are passed are in byte format;
                   default is false
         shift:    Parameter which ensures that indices for training and validation data set do not overlap.
-                  At the moment, this parameter is used in the following way: 
+                  At the moment, this parameter is used in the following way:
                   1. convert the training dataset first without introducting a shift
                   2. convert the validation dataset with a shift of the length of the training dataset
-    
+
     Outputs: FlatMapDataset which fits the following structure:
              {idx: (), label: (), sentence: ()}, types: {idx: tf.int32, label: tf.int64, sentence: tf.string}
-    
-    '''
-    
+
+    """
+
     if decode:
         # get label
-        to_int = lambda t: int(t.decode("utf-8"))
-        label=list(map(to_int, label))
+        # to_int = lambda t: int(t.decode("utf-8"))
+        label = list(map(lambda t: int(t.decode("utf-8")), label))
 
         # get idx
-        idx=[j for j in range(0,len(label))]
+        idx = [j for j in range(0, len(label))]
 
         # get sentence
-        to_string = lambda t: t.decode("utf-8")
-        sentence=list(map(to_string, sentence))
+        # to_string = lambda t: t.decode("utf-8")
+        sentence = list(map(lambda t: t.decode("utf-8"), sentence))
     else:
-        idx=[j+shift for j in range(0,len(label))]
+        idx = [j + shift for j in range(0, len(label))]
 
-    
     return _create_tf_example(idx, label, sentence)
-
 
 
 def convert_tf_data_to_glue_format(data, shift=0):
-    '''
-    Description: This function converts a DatasetV1Adapter into a glue-compatible format by calculating 
-                 the three main components from an input dataset. 
+    """
+    Description: This function converts a DatasetV1Adapter into a glue-compatible format by calculating
+                 the three main components from an input dataset.
                  The function create_tf_example from preprocessing is called to create the final dataset.
-    
-    Args: 
+
+    Args:
         data:    DatasetV1Adapter, e.g. data['train'] when using an official Tensorflow dataset
         shift:   Parameter which ensures that indices for training and validation data set do not overlap.
-                 At the moment, this parameter is used in the following way: 
+                 At the moment, this parameter is used in the following way:
                  1. convert the training dataset first without introducting a shift
                  2. convert the validation dataset with a shift of the length of the training dataset
-    
+
     Outputs: FlatMapDataset which fits the following structure:
              {idx: (), label: (), sentence: ()}, types: {idx: tf.int32, label: tf.int64, sentence: tf.string}
-    
-    '''
-    np_array=np.array(list(data.as_numpy_iterator()))
-    
+
+    """
+    np_array = np.array(list(data.as_numpy_iterator()))
+
     # get label
-    to_int = lambda t: int(t.decode("utf-8"))
-    label=np_array[:,1].tolist()
-    label=list(map(to_int, label))
-    
+    # to_int = lambda t: int(t.decode("utf-8"))
+    label = np_array[:, 1].tolist()
+    label = list(map(lambda t: int(t.decode("utf-8")), label))
+
     # get idx
-    idx=[j+shift for j in range(0,len(label))]
-    
+    idx = [j + shift for j in range(0, len(label))]
+
     # get sentence
-    to_string = lambda t: t.decode("utf-8")
-    sentence=np_array[:,0].tolist()
-    sentence=list(map(to_string, sentence))
-    
+    # to_string = lambda t: t.decode("utf-8")
+    sentence = np_array[:, 0].tolist()
+    sentence = list(map(lambda t: t.decode("utf-8"), sentence))
+
     return _create_tf_example(idx, label, sentence)
 
+
 def feature_selection(feature, label):
-    print('feature:',feature['input_ids'],'label:',label)
+    print('feature:', feature['input_ids'], 'label:', label)
     return feature['input_ids'], label
 
 
@@ -218,20 +223,26 @@ def label_extraction(feature, label):
 
 
 def _bytes_feature(value):
-  """Returns a bytes_list from a string / byte."""
-  if isinstance(value, type(tf.constant(0))):
-    value = value.numpy() # BytesList won't unpack a string from an EagerTensor.
-  return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+    """
+    Returns a bytes_list from a string / byte.
+    """
+    if isinstance(value, type(tf.constant(0))):
+        value = value.numpy()  # BytesList won't unpack a string from an EagerTensor.
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
 def _float_feature(value):
-  """Returns a float_list from a float / double."""
-  return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+    """
+    Returns a float_list from a float / double.
+    """
+    return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
 
 
 def _int64_feature(value):
-  """Returns an int64_list from a bool / enum / int / uint."""
-  return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+    """
+    Returns an int64_list from a bool / enum / int / uint.
+    """
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 
 def serialize_example(features, label):
@@ -253,9 +264,11 @@ def serialize_example(features, label):
 
     return example_proto.SerializeToString()
 
+
 def generator(data):
     for features in data:
         yield serialize_example(*features)
+
 
 def write_tf_data_into_tfrecord(data, file_name):
     serialized_features_dataset = tf.data.Dataset.from_generator(lambda: generator(data),
@@ -266,6 +279,7 @@ def write_tf_data_into_tfrecord(data, file_name):
     writer = tf.data.experimental.TFRecordWriter(filename)
     writer.write(serialized_features_dataset)
 
+
 def parse_tfrecord_glue_files(record):
     # The tensors you pull into the model MUST have the same name
     # as what was encoded in the TFRecord
@@ -275,6 +289,7 @@ def parse_tfrecord_glue_files(record):
 
     # For example, there will only be 1 review per example, and as
     # a result, sentence is a FixedLenFeature.
+
     features_spec = {
         'input_ids': tf.io.FixedLenFeature([], tf.string, default_value=''),
         'attention_mask': tf.io.FixedLenFeature([], tf.string, default_value=''),
