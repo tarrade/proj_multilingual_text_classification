@@ -236,11 +236,17 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     timing = mu.TimingCallback()
     model_callbacks.append(timing)
 
+    #adding flags
+    no_callback = True
+    if no_callback:
+        model_callbacks = []
+
     # train the model
 
     # time the function
     start_time = time.time()
 
+    logging.info('staring mode.fit')
     history = model.fit(train_data,
                         epochs=num_epochs,
                         steps_per_epoch=steps_per_epoch,
@@ -274,7 +280,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     # logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
     metric_accuracy = 'accuracy_train'
-    value_accuracy = histories_per_step.accuracies[-1]
+    if no_callback:
+        value_accuracy = 0.0
+    else:
+        value_accuracy = histories_per_step.accuracies[-1]
     hpt = hypertune.HyperTune()
     hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
                                             metric_value=value_accuracy,
@@ -335,21 +344,22 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         os.makedirs(history_dir, exist_ok=True)
     logging.debug('history_dir: \n {}'.format(history_dir))
 
-    with open(history_dir + '/history', 'wb') as file:
-        model_history = mu.History_trained_model(history.history, history.epoch, history.params)
-        pickle.dump(model_history, file, pickle.HIGHEST_PROTOCOL)
+    if not no_callback:
+        with open(history_dir + '/history', 'wb') as file:
+            model_history = mu.History_trained_model(history.history, history.epoch, history.params)
+            pickle.dump(model_history, file, pickle.HIGHEST_PROTOCOL)
 
-    with open(history_dir + '/history_per_step', 'wb') as file:
-        model_history_per_step = mu.History_per_steps_trained_model(histories_per_step.steps,
-                                                                    histories_per_step.losses,
-                                                                    histories_per_step.accuracies,
-                                                                    histories_per_step.val_steps,
-                                                                    histories_per_step.val_losses,
-                                                                    histories_per_step.val_accuracies,
-                                                                    all_learning_rates.all_lr,
-                                                                    all_learning_rates.all_lr_alternative,
-                                                                    all_learning_rates.all_lr_logs)
-        pickle.dump(model_history_per_step, file, pickle.HIGHEST_PROTOCOL)
+        with open(history_dir + '/history_per_step', 'wb') as file:
+            model_history_per_step = mu.History_per_steps_trained_model(histories_per_step.steps,
+                                                                        histories_per_step.losses,
+                                                                        histories_per_step.accuracies,
+                                                                        histories_per_step.val_steps,
+                                                                        histories_per_step.val_losses,
+                                                                        histories_per_step.val_accuracies,
+                                                                        all_learning_rates.all_lr,
+                                                                        all_learning_rates.all_lr_alternative,
+                                                                        all_learning_rates.all_lr_logs)
+            pickle.dump(model_history_per_step, file, pickle.HIGHEST_PROTOCOL)
 
     if output_dir:
         # save the model
