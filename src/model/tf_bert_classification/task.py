@@ -277,26 +277,28 @@ def main(argv):
                                                            FLAGS.steps_per_epoch_eval))
     logging.info('Total number of batch: {:6}/{:6}'.format(FLAGS.steps_per_epoch_train * (FLAGS.epochs + 1),
                                                            FLAGS.steps_per_epoch_eval * 1))
-
+    print('-- 00001')
     #  read TFRecords files, shuffle, map and batch size
     train_dataset = tf_bert.build_dataset(FLAGS.input_train_tfrecords, FLAGS.batch_size_train, 2048)
     valid_dataset = tf_bert.build_dataset(FLAGS.input_eval_tfrecords, FLAGS.batch_size_eval, 2048)
-
+    print('-- 00002')
     # set repeat
     train_dataset = train_dataset.repeat(FLAGS.epochs + 1)
     valid_dataset = valid_dataset.repeat(2)
-
+    print('-- 00003')
     # reset all variables used by Keras
     tf.keras.backend.clear_session()
 
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
+        print('-- 00004')
         logging.debug('pretrained_model_dir={}'.format(pretrained_model_dir))
         model = tf_bert.create_model(pretrained_weights,
                                      pretrained_model_dir=pretrained_model_dir,
                                      num_labels=FLAGS.num_classes,
                                      learning_rate=FLAGS.learning_rate,
                                      epsilon=FLAGS.epsilon)
+    print('-- 00005')
     # train the model
     tf_bert.train_and_evaluate(model,
                                num_epochs=FLAGS.epochs,
@@ -311,7 +313,7 @@ def main(argv):
                                learning_rate=FLAGS.learning_rate,
                                s=FLAGS.s,
                                n_batch_decay=FLAGS.n_batch_decay)
-
+    print('-- 00006')
 
 if __name__ == '__main__':
     app.run(main)

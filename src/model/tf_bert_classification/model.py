@@ -55,19 +55,27 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     # return dataset
 
     # best way ?
+    print('-----a')
     dataset = tf.data.Dataset.list_files(file_pattern,
                                          shuffle=True,
                                          seed=None
                                          )
+    print('-----b')
     dataset = dataset.interleave(tf.data.TFRecordDataset,
                                  cycle_length=tf.data.experimental.AUTOTUNE,
                                  num_parallel_calls=tf.data.experimental.AUTOTUNE,
                                  deterministic=False)
+    print('-----c')
     dataset = dataset.shuffle(shuffle_buffer)
+    print('-----d')
     dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    print('-----e')
     dataset = dataset.batch(batch_size)
+    print('-----f')
     dataset = dataset.cache()
+    print('-----d')
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    print('-----g')
     return dataset
 
     # standard 4 -> issue: flat  accuracy and loss
@@ -249,7 +257,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # time the function
     start_time = time.time()
 
-    logging.info('staring mode.fit')
+    # tricks -> no callbacks
+    model_callbacks = []
+
+    logging.info('starting model.fit')
     history = model.fit(train_data,
                         epochs=num_epochs,
                         steps_per_epoch=steps_per_epoch,
