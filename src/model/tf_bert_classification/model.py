@@ -239,7 +239,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     # callback to time each epoch
     timing = mu.TimingCallback()
-    # model_callbacks.append(timing)  # disable
+    model_callbacks.append(timing)
 
     # checking model callbacks for
     logging.info('model\'s callback:\n {}'.format(str(model_callbacks)))
@@ -285,10 +285,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     metric_accuracy = 'accuracy_train'
     value_accuracy = histories_per_step.accuracies[-1]
     print(' step 2')
-    # hpt = hypertune.HyperTune()
-    # hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
-    #                                        metric_value=value_accuracy,
-    #                                        global_step=0)
+    hpt = hypertune.HyperTune()
+    hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
+                                            metric_value=value_accuracy,
+                                            global_step=0)
 
     # logging.info('[2] list all files: \n')
     # for root, dirs, files in os.walk("/var/hypertune/"):

@@ -191,8 +191,8 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
 
         current_step = self.model.optimizer.iterations.numpy()
         # with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
-        with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
-            tf.summary.scalar("learning_rate", logs['lr'], step=current_step)
+        # with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
+        #    tf.summary.scalar("learning_rate", logs['lr'], step=current_step)
         # print('tf.summary output: ', current_lr)
 # -------------------------------------------------------------------------------------
 
@@ -294,10 +294,11 @@ class HP_metric(tf.keras.callbacks.Callback):
     """
 
     def on_epoch_end(self, epoch, logs=None):
-        tf_writer = tf.summary.create_file_writer('/var/hypertune/',
-                                                  name='output.metric')
-        with tf_writer.as_default():
-            tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
+        # tf_writer = tf.summary.create_file_writer('/var/hypertune/',
+        #                                          name='output.metric')
+        # with tf_writer.as_default():
+        tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
+        tf.summary.scalar('metric1', logs.get('accuracy'), epoch)
         print('epoch_accuracy_train {} epoch {} \n'.format(logs.get('accuracy'), epoch))
         return
 
