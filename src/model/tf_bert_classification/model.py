@@ -226,7 +226,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # all_learning_rates = mu.LearningRateSchedulerPerBatch(model.optimizer, n_steps_history)
     all_learning_rates = mu.LR_per_step()
     # all_learning_rates = mu.LR_per_step(model.optimizer)
-    #model_callbacks.append(all_learning_rates)  # disble
+    # model_callbacks.append(all_learning_rates)  # disble
 
     # callback to create  history per step (not per epoch)
     histories_per_step = mu.History_per_step(eval_data, n_steps_history)
@@ -275,13 +275,13 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #    for f in files:
     #        #if 'output.metric' in f:
     #        print(root + f)
-
+    print(' step 1')
     # logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
     metric_accuracy = 'accuracy_train'
     value_accuracy = histories_per_step.accuracies[-1]
-
-    #hpt = hypertune.HyperTune()
-    #hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
+    print(' step 2')
+    # hpt = hypertune.HyperTune()
+    # hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
     #                                        metric_value=value_accuracy,
     #                                        global_step=0)
 
@@ -289,17 +289,21 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # for root, dirs, files in os.walk("/var/hypertune/"):
     #    # print(root, dirs)
     #    for f in files:
-    #        #if 'output.metric' in f:
+    #        # if 'output.metric' in f:
     #        print(root + f)
-
+    print(' step 3')
     # for hp parameter tuning in TensorBoard
     if FLAGS.is_hyperparameter_tuning:
+        print(' step 4')
         path_metric = '/var/hypertune/output.metric'
         if os.path.isfile(path_metric):
+            print(' step 5')
             logging.info('file {} exist !'.format(path_metric))
             with open(path_metric, 'r') as f:
+                print(' step 6')
                 logging.info(f.read())
 
+        print(' step 7')
         params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
         list_hp = []
         hparams = {}
@@ -342,7 +346,6 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         os.makedirs(history_dir, exist_ok=True)
     logging.debug('history_dir: \n {}'.format(history_dir))
 
-
     with open(history_dir + '/history', 'wb') as file:
         model_history = mu.History_trained_model(history.history, history.epoch, history.params)
         pickle.dump(model_history, file, pickle.HIGHEST_PROTOCOL)
@@ -354,9 +357,9 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
                                                                     histories_per_step.val_steps,
                                                                     histories_per_step.val_losses,
                                                                     histories_per_step.val_accuracies,
-                                                                    all_learning_rates.all_lr,
-                                                                    all_learning_rates.all_lr_alternative,
-                                                                    all_learning_rates.all_lr_logs)
+                                                                    0,  #all_learning_rates.all_lr,
+                                                                    0,  #all_learning_rates.all_lr_alternative,
+                                                                    0)  #all_learning_rates.all_lr_logs)
         pickle.dump(model_history_per_step, file, pickle.HIGHEST_PROTOCOL)
 
     if output_dir:
