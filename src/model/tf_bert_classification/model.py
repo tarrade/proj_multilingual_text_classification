@@ -37,13 +37,13 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     # return dataset
 
     # standard 1
-    dataset = tf.data.TFRecordDataset(tf.io.gfile.glob(file_pattern))
-    dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.shuffle(shuffle_buffer)
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.cache()
-    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-    return dataset
+    # dataset = tf.data.TFRecordDataset(tf.io.gfile.glob(file_pattern))
+    # dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    # dataset = dataset.shuffle(shuffle_buffer)
+    # dataset = dataset.batch(batch_size)
+    # dataset = dataset.cache()
+    # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    # return dataset
 
     # standard 2
     # dataset = tf.data.TFRecordDataset(file_pattern)
@@ -55,20 +55,20 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     # return dataset
 
     # best way ?
-    # dataset = tf.data.Dataset.list_files(file_pattern,
-    #                                     shuffle=True,
-    #                                     seed=None
-    #                                     )
-    # dataset = dataset.interleave(tf.data.TFRecordDataset,
-    #                             cycle_length=tf.data.experimental.AUTOTUNE,
-    #                             num_parallel_calls=tf.data.experimental.AUTOTUNE,
-    #                             deterministic=False)
-    # dataset = dataset.shuffle(shuffle_buffer)
-    # dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    # dataset = dataset.batch(batch_size)
-    # dataset = dataset.cache()
-    # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-    # return dataset
+    dataset = tf.data.Dataset.list_files(file_pattern,
+                                         shuffle=True,
+                                         seed=None
+                                         )
+    dataset = dataset.interleave(tf.data.TFRecordDataset,
+                                 cycle_length=tf.data.experimental.AUTOTUNE,
+                                 num_parallel_calls=tf.data.experimental.AUTOTUNE,
+                                 deterministic=False)
+    dataset = dataset.shuffle(shuffle_buffer)
+    dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    dataset = dataset.batch(batch_size)
+    dataset = dataset.cache()
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    return dataset
 
     # standard 4 -> issue: flat  accuracy and loss
     # dataset = tf.data.Dataset.from_tensor_slices(file_pattern)
@@ -226,7 +226,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # all_learning_rates = mu.LearningRateSchedulerPerBatch(model.optimizer, n_steps_history)
     all_learning_rates = mu.LR_per_step()
     # all_learning_rates = mu.LR_per_step(model.optimizer)
-    model_callbacks.append(all_learning_rates)
+    #model_callbacks.append(all_learning_rates)  # disble
 
     # callback to create  history per step (not per epoch)
     histories_per_step = mu.History_per_step(eval_data, n_steps_history)
@@ -234,12 +234,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     # callback to time each epoch
     timing = mu.TimingCallback()
-    model_callbacks.append(timing)
+    # model_callbacks.append(timing)  # disable
 
-    #adding flags
-    no_callback = True
-    if no_callback:
-        model_callbacks = []
+    # checking model callbacks for
+    logging.debug('model\'s callback:\n {}'.format(str(model_callbacks)))
 
     # train the model
 
@@ -280,14 +278,12 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     # logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
     metric_accuracy = 'accuracy_train'
-    if no_callback:
-        value_accuracy = 0.0
-    else:
-        value_accuracy = histories_per_step.accuracies[-1]
-    hpt = hypertune.HyperTune()
-    hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
-                                            metric_value=value_accuracy,
-                                            global_step=0)
+    value_accuracy = histories_per_step.accuracies[-1]
+
+    #hpt = hypertune.HyperTune()
+    #hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
+    #                                        metric_value=value_accuracy,
+    #                                        global_step=0)
 
     # logging.info('[2] list all files: \n')
     # for root, dirs, files in os.walk("/var/hypertune/"):
@@ -296,12 +292,14 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     #        #if 'output.metric' in f:
     #        print(root + f)
 
-    # path_metric='/var/hypertune/output.metric'
-    # with open(path_metric, 'r') as f:
-    #    print(f.read())
-
     # for hp parameter tuning in TensorBoard
     if FLAGS.is_hyperparameter_tuning:
+        path_metric = '/var/hypertune/output.metric'
+        if os.path.isfile(path_metric):
+            logging.info('file {} exist !'.format(path_metric))
+            with open(path_metric, 'r') as f:
+                logging.info(f.read())
+
         params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
         list_hp = []
         hparams = {}
