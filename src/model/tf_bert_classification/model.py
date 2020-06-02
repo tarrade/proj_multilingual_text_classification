@@ -165,6 +165,11 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         if suffix == '':
             logging.error('No trial ID for hyper parameter job!')
             FLAGS.is_hyperparameter_tuning = False
+        else:
+            # callback for hp
+            logging.info('Creating a callback to store the metric!')
+            hp_metric = mu.HP_metric()
+            model_callbacks.append(hp_metric)
 
     if output_dir:
         # tensorflow callback
@@ -237,7 +242,7 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # model_callbacks.append(timing)  # disable
 
     # checking model callbacks for
-    logging.debug('model\'s callback:\n {}'.format(str(model_callbacks)))
+    logging.info('model\'s callback:\n {}'.format(str(model_callbacks)))
 
     # train the model
 
@@ -262,12 +267,12 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     logging.info('sum timing over all epochs:\n{}'.format(timedelta(seconds=round(sum(timing.timing_epoch)))))
 
     # this is for hyperparameter tuning
-    # logging.info('[1] list all files: \n')
-    # for root, dirs, files in os.walk("/var/hypertune/"):
-    #    # print(root, dirs)
-    #    for f in files:
-    #        #if 'output.metric' in f:
-    #        print(root + f)
+    logging.info('[1] list all files: \n')
+    for root, dirs, files in os.walk("/var/hypertune/"):
+       print(root, dirs)
+       for f in files:
+           #if 'output.metric' in f:
+           print('file=', root + f)
 
     # logging.info('[2] list all files: \n')
     # for root, dirs, files in os.walk("/tmp/hypertune/"):

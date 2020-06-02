@@ -287,16 +287,25 @@ class History_per_step(tf.keras.callbacks.Callback):
         # print('{}\n'.format(logs))
         return
 
-    def on_epoch_end(self, epoch, logs={}):
-        hp_dir = os.path.join('/var/hypertune/output.metric')
-        with tf.summary.create_file_writer(hp_dir).as_default():
+
+class HP_metric(tf.keras.callbacks.Callback):
+    """
+    Callback to print validation accuracy after N epochs
+    """
+
+    def on_epoch_end(self, epoch, logs=None):
+        tf_writer = tf.summary.create_file_writer('/var/hypertune/',
+                                                  name='output.metric')
+        with tf_writer.as_default():
             tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
-        print('accuracy_train {} epoch {} \n'.format(logs.get('accuracy'), epoch))
+        print('epoch_accuracy_train {} epoch {} \n'.format(logs.get('accuracy'), epoch))
         return
 
 
-# Class to time eaach epoch
 class TimingCallback(tf.keras.callbacks.Callback):
+    """
+    Class to time each epoch
+    """
     def __init__(self, logs={}):
         self.timing_epoch = []
         self.timing_valid = []
