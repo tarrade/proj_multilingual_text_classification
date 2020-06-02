@@ -288,7 +288,9 @@ class History_per_step(tf.keras.callbacks.Callback):
         return
 
     def on_epoch_end(self, epoch, logs={}):
-        tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
+        hp_dir = os.path.join('/var/hypertune/output.metric')
+        with tf.summary.create_file_writer(hp_dir).as_default():
+            tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
         print('accuracy_train {} epoch {} \n'.format(logs.get('accuracy'), epoch))
         return
 
