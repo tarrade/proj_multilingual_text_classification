@@ -6,7 +6,7 @@ import os
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
 # os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
 import tensorflow as tf
-# tf.debugging.set_log_device_placement(True)
+tf.debugging.set_log_device_placement(True)
 # tf.autograph.set_verbosity(10, alsologtostdout=False)
 from transformers import (
     BertTokenizer,
