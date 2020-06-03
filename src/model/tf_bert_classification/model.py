@@ -63,8 +63,11 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     print('-----b')
     dataset = dataset.interleave(tf.data.TFRecordDataset,
                                  cycle_length=tf.data.experimental.AUTOTUNE,
-                                 num_parallel_calls=tf.data.experimental.AUTOTUNE,
-                                 deterministic=False)
+                                 num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.interleave(tf.data.TFRecordDataset,
+    #                             cycle_length=tf.data.experimental.AUTOTUNE,
+    #                             num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    #                             deterministic=False)
     print('-----c')
     dataset = dataset.shuffle(shuffle_buffer)
     print('-----d')
