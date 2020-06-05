@@ -189,7 +189,7 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
         logs = logs or {}
         logs['lr'] = tf.keras.backend.get_value(self.model.optimizer.lr)
 
-        current_step = self.model.optimizer.iterations.numpy()
+        # current_step = self.model.optimizer.iterations.numpy()
         # with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
         # with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
         #    tf.summary.scalar("learning_rate", logs['lr'], step=current_step)
@@ -292,14 +292,12 @@ class HP_metric(tf.keras.callbacks.Callback):
     """
     Callback to print validation accuracy after N epochs
     """
+    def __init__(self, name_metric):
+        self.name_metric = name_metric
 
-    def on_epoch_end(self, epoch, logs=None):
-        # tf_writer = tf.summary.create_file_writer('/var/hypertune/',
-        #                                          name='output.metric')
-        # with tf_writer.as_default():
-        tf.summary.scalar('epoch_accuracy_train', logs.get('accuracy'), epoch)
-        tf.summary.scalar('metric1', logs.get('accuracy'), epoch)
-        print('epoch_accuracy_train {} epoch {} \n'.format(logs.get('accuracy'), epoch))
+    def on_epoch_end(self, epoch, logs={}):
+        tf.summary.scalar(self.name_metric, logs.get('accuracy'), step=epoch)
+        print('{} : {} epoch {} \n'.format(self.name_metric, logs.get('accuracy'), epoch))
         return
 
 

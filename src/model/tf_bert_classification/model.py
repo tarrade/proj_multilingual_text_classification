@@ -55,30 +55,19 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     # return dataset
 
     # best way ?
-    print('-----a')
     dataset = tf.data.Dataset.list_files(file_pattern,
                                          shuffle=True,
                                          seed=None
                                          )
-    print('-----b')
     dataset = dataset.interleave(tf.data.TFRecordDataset,
                                  cycle_length=tf.data.experimental.AUTOTUNE,
-                                 num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    #dataset = dataset.interleave(tf.data.TFRecordDataset,
-    #                             cycle_length=tf.data.experimental.AUTOTUNE,
-    #                             num_parallel_calls=tf.data.experimental.AUTOTUNE,
-    #                             deterministic=False)
-    print('-----c')
+                                 num_parallel_calls=tf.data.experimental.AUTOTUNE,
+                                 deterministic=False)
     dataset = dataset.shuffle(shuffle_buffer)
-    print('-----d')
     dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    print('-----e')
     dataset = dataset.batch(batch_size)
-    print('-----f')
     dataset = dataset.cache()
-    print('-----d')
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-    print('-----g')
     return dataset
 
     # standard 4 -> issue: flat  accuracy and loss
@@ -153,7 +142,7 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     return model
 
 
-def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history, FLAGS, decay_type, learning_rate=3e-5, s=1, n_batch_decay=1):
+def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history, FLAGS, decay_type, learning_rate=3e-5, s=1, n_batch_decay=1, metric_accuracy='metric'):
     """
     Compiles keras model and loads data into it for training.
     """
@@ -169,6 +158,19 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     dict_type_job = {}
     dict_software = {}
 
+    # for debugging only
+    activate_tensorboard = True
+    activate_hp_tensorboard = True
+    activate_lr = False
+    save_checkpoints = True
+    save_history_per_step = True
+    save_metadata = True
+    activate_timing = True
+    # drop official method that is not working
+    activate_tf_summary_hp = False
+    # hardcoded way of doing hp
+    activate_hardcoded_hp = True
+
     if FLAGS.is_hyperparameter_tuning:
         # get trial ID
         suffix = mu.get_trial_id()
@@ -179,40 +181,38 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         else:
             # callback for hp
             logging.info('Creating a callback to store the metric!')
-            hp_metric = mu.HP_metric()
-            model_callbacks.append(hp_metric)
+            if activate_tf_summary_hp:
+                hp_metric = mu.HP_metric(metric_accuracy)
+                model_callbacks.append(hp_metric)
 
     if output_dir:
-        # tensorflow callback
-        log_dir = os.path.join(output_dir, 'tensorboard')
-        if FLAGS.is_hyperparameter_tuning:
-            log_dir = os.path.join(log_dir, suffix)
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
-                                                              histogram_freq=1,
-                                                              embeddings_freq=1,
-                                                              write_graph=True,
-                                                              update_freq='batch',
-                                                              profile_batch='10, 20')
-        model_callbacks.append(tensorboard_callback)
+        if activate_tensorboard:
+            # tensorflow callback
+            log_dir = os.path.join(output_dir, 'tensorboard')
+            if FLAGS.is_hyperparameter_tuning:
+                log_dir = os.path.join(log_dir, suffix)
+            tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
+                                                                  histogram_freq=1,
+                                                                  embeddings_freq=1,
+                                                                  write_graph=True,
+                                                                  update_freq='batch',
+                                                                  profile_batch='10, 20')
+            model_callbacks.append(tensorboard_callback)
 
-        # checkpoints callback
-        checkpoint_dir = os.path.join(output_dir, 'checkpoint_model')
-        if not FLAGS.is_hyperparameter_tuning:
-            # not saving model during hyper parameter tuning
-            # heckpoint_dir = os.path.join(checkpoint_dir, suffix)
-            checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt_{epoch:02d}')
-            checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
-                                                                     verbose=1,
-                                                                     save_weights_only=True)
-            model_callbacks.append(checkpoint_callback)
+        if save_checkpoints:
+            # checkpoints callback
+            checkpoint_dir = os.path.join(output_dir, 'checkpoint_model')
+            if not FLAGS.is_hyperparameter_tuning:
+                # not saving model during hyper parameter tuning
+                # heckpoint_dir = os.path.join(checkpoint_dir, suffix)
+                checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt_{epoch:02d}')
+                checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_prefix,
+                                                                         verbose=1,
+                                                                         save_weights_only=True)
+                model_callbacks.append(checkpoint_callback)
 
+    if activate_lr:
         # decay learning rate callback
-        # ---------------------------------------------------------------------------------------------------------------
-        # exponential decay function
-        # def exponential_decay(lr0, s):
-        #    def exponential_decay_fn(steps_per_epoch):
-        #        return lr0 * 0.1**(steps_per_epoch / s)
-        #    return exponential_decay_fn
 
         # code snippet to make the switching between different learning rate decays possible
         if decay_type == 'exponential':
@@ -238,30 +238,28 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         # model_callbacks.append(mu.PrintLR())
         # ---------------------------------------------------------------------------------------------------------------
 
-    # callback to store all the learning rates
-    # all_learning_rates = mu.LearningRateSchedulerPerBatch(model.optimizer, n_steps_history)
-    all_learning_rates = mu.LR_per_step()
-    # all_learning_rates = mu.LR_per_step(model.optimizer)
-    # model_callbacks.append(all_learning_rates)  # disble
+        # callback to store all the learning rates
+        # all_learning_rates = mu.LearningRateSchedulerPerBatch(model.optimizer, n_steps_history)
+        # all_learning_rates = mu.LR_per_step()
+        # all_learning_rates = mu.LR_per_step(model.optimizer)
+        # model_callbacks.append(all_learning_rates)  # disble
 
-    # callback to create  history per step (not per epoch)
-    histories_per_step = mu.History_per_step(eval_data, n_steps_history)
-    model_callbacks.append(histories_per_step)
+    if save_history_per_step:
+        # callback to create  history per step (not per epoch)
+        histories_per_step = mu.History_per_step(eval_data, n_steps_history)
+        model_callbacks.append(histories_per_step)
 
-    # callback to time each epoch
-    timing = mu.TimingCallback()
-    model_callbacks.append(timing)
+    if activate_timing:
+        # callback to time each epoch
+        timing = mu.TimingCallback()
+        model_callbacks.append(timing)
 
     # checking model callbacks for
     logging.info('model\'s callback:\n {}'.format(str(model_callbacks)))
 
     # train the model
-
     # time the function
     start_time = time.time()
-
-    # tricks -> no callbacks
-    model_callbacks = []
 
     logging.info('starting model.fit')
     history = model.fit(train_data,
@@ -275,176 +273,158 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # print execution time
     elapsed_time_secs = time.time() - start_time
     logging.info('\nexecution time: {}'.format(timedelta(seconds=round(elapsed_time_secs))))
-
     logging.info('timing per epoch:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))), timing.timing_epoch))))
     logging.info('timing per validation:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))), timing.timing_valid))))
     logging.info('sum timing over all epochs:\n{}'.format(timedelta(seconds=round(sum(timing.timing_epoch)))))
 
-    # this is for hyperparameter tuning
-    logging.info('[1] list all files: \n')
-    for root, dirs, files in os.walk("/var/hypertune/"):
-       print(root, dirs)
-       for f in files:
-           #if 'output.metric' in f:
-           print('file=', root + f)
-
-    # logging.info('[2] list all files: \n')
-    # for root, dirs, files in os.walk("/tmp/hypertune/"):
-    #    # print(root, dirs)
-    #    for f in files:
-    #        #if 'output.metric' in f:
-    #        print(root + f)
-    print(' step 1')
-    # logging.info('hyperparameter tuning "accuracy_train": {}'.format(histories_per_step.accuracies))
-    metric_accuracy = 'accuracy_train'
-    value_accuracy = histories_per_step.accuracies[-1]
-    print(' step 2')
-    hpt = hypertune.HyperTune()
-    hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
-                                            metric_value=value_accuracy,
-                                            global_step=0)
-
-    # logging.info('[2] list all files: \n')
-    # for root, dirs, files in os.walk("/var/hypertune/"):
-    #    # print(root, dirs)
-    #    for f in files:
-    #        # if 'output.metric' in f:
-    #        print(root + f)
-    print(' step 3')
     # for hp parameter tuning in TensorBoard
     if FLAGS.is_hyperparameter_tuning:
-        print(' step 4')
+        logging.info('setup hyperparameter tuning!')
+        if activate_hardcoded_hp:
+            # trick to bypass ai platform bug
+            logging.info('hardcoded hyperparameter tuning!')
+            value_accuracy = histories_per_step.accuracies[-1]
+            hpt = hypertune.HyperTune()
+            hpt.report_hyperparameter_tuning_metric(hyperparameter_metric_tag=metric_accuracy,
+                                                    metric_value=value_accuracy,
+                                                    global_step=0)
+        else:
+            # should be extracted from /var/hypertune/output.metric
+            logging.info('standard hyperparameter tuning!')
+            value_accuracy = histories_per_step.accuracies[-1]
+
+        # look at the content of the file
         path_metric = '/var/hypertune/output.metric'
+        logging.info('checking if /var/hypertune/output.metric exist!')
         if os.path.isfile(path_metric):
-            print(' step 5')
             logging.info('file {} exist !'.format(path_metric))
             with open(path_metric, 'r') as f:
-                print(' step 6')
-                logging.info(f.read())
+                logging.info('content of output.metric: {}'.format(f.read()))
 
-        print(' step 7')
-        params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
-        list_hp = []
-        hparams = {}
-        for el in params:
-            hp_dict = dict(el)
-            if hp_dict.get('type') == 'DOUBLE':
-                key_hp = hp.HParam(hp_dict.get('parameter_name'),
-                                   hp.RealInterval(hp_dict.get('min_value'),
-                                                   hp_dict.get('max_value')))
-                list_hp.append(key_hp)
-                try:
-                    hparams[key_hp] = FLAGS[hp_dict.get('parameter_name')].value
-                except KeyError:
-                    logging.error('hyperparameter key {} doesn\'t exist'.format(hp_dict.get('parameter_name')))
-                # to be deleted
-                # hparams[key_hp]=eval('FLAGS.'+hp_dict.get('parameter_name'))
+        if activate_hp_tensorboard:
+            logging.info('setup TensorBoard for hyperparameter tuning!')
+            params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
+            list_hp = []
+            hparams = {}
+            for el in params:
+                hp_dict = dict(el)
+                if hp_dict.get('type') == 'DOUBLE':
+                    key_hp = hp.HParam(hp_dict.get('parameter_name'),
+                                       hp.RealInterval(hp_dict.get('min_value'),
+                                                       hp_dict.get('max_value')))
+                    list_hp.append(key_hp)
+                    try:
+                        hparams[key_hp] = FLAGS[hp_dict.get('parameter_name')].value
+                    except KeyError:
+                        logging.error('hyperparameter key {} doesn\'t exist'.format(hp_dict.get('parameter_name')))
 
-        hparams_dir = os.path.join(output_dir, 'hparams_tuning')
-        with tf.summary.create_file_writer(hparams_dir).as_default():
-            hp.hparams_config(
-                hparams=list_hp,
-                metrics=[hp.Metric(metric_accuracy, display_name='Accuracy')],
-            )
-        if FLAGS.is_hyperparameter_tuning:
+            hparams_dir = os.path.join(output_dir, 'hparams_tuning')
+            with tf.summary.create_file_writer(hparams_dir).as_default():
+                hp.hparams_config(
+                    hparams=list_hp,
+                    metrics=[hp.Metric(metric_accuracy, display_name=metric_accuracy)],
+                )
+
             hparams_dir = os.path.join(hparams_dir, suffix)
+            with tf.summary.create_file_writer(hparams_dir).as_default():
+                # record the values used in this trial
+                hp.hparams(hparams)
+                tf.summary.scalar(metric_accuracy, value_accuracy, step=1)
 
-        with tf.summary.create_file_writer(hparams_dir).as_default():
-            hp.hparams(hparams)  # record the values used in this trial
-            tf.summary.scalar(metric_accuracy, value_accuracy, step=1)
-
-    # save the history in a file
-    search = re.search('gs://(.*?)/(.*)', output_dir)
-    if search is not None:
-        # temp folder locally and to be  ove on gcp later
-        history_dir = os.path.join('./', model.name)
-        os.makedirs(history_dir, exist_ok=True)
-    else:
-        # locally
-        history_dir = os.path.join(output_dir, model.name)
-        os.makedirs(history_dir, exist_ok=True)
-    logging.debug('history_dir: \n {}'.format(history_dir))
-
-    with open(history_dir + '/history', 'wb') as file:
-        model_history = mu.History_trained_model(history.history, history.epoch, history.params)
-        pickle.dump(model_history, file, pickle.HIGHEST_PROTOCOL)
-
-    with open(history_dir + '/history_per_step', 'wb') as file:
-        model_history_per_step = mu.History_per_steps_trained_model(histories_per_step.steps,
-                                                                    histories_per_step.losses,
-                                                                    histories_per_step.accuracies,
-                                                                    histories_per_step.val_steps,
-                                                                    histories_per_step.val_losses,
-                                                                    histories_per_step.val_accuracies,
-                                                                    0,  #all_learning_rates.all_lr,
-                                                                    0,  #all_learning_rates.all_lr_alternative,
-                                                                    0)  #all_learning_rates.all_lr_logs)
-        pickle.dump(model_history_per_step, file, pickle.HIGHEST_PROTOCOL)
+    if save_history_per_step:
+        # save the history in a file
+        search = re.search('gs://(.*?)/(.*)', output_dir)
+        if search is not None:
+            # temp folder locally and to be  ove on gcp later
+            history_dir = os.path.join('./', model.name)
+            os.makedirs(history_dir, exist_ok=True)
+        else:
+            # locally
+            history_dir = os.path.join(output_dir, model.name)
+            os.makedirs(history_dir, exist_ok=True)
+        logging.debug('history_dir: \n {}'.format(history_dir))
+        with open(history_dir + '/history', 'wb') as file:
+            model_history = mu.History_trained_model(history.history, history.epoch, history.params)
+            pickle.dump(model_history, file, pickle.HIGHEST_PROTOCOL)
+        with open(history_dir + '/history_per_step', 'wb') as file:
+            model_history_per_step = mu.History_per_steps_trained_model(histories_per_step.steps,
+                                                                        histories_per_step.losses,
+                                                                        histories_per_step.accuracies,
+                                                                        histories_per_step.val_steps,
+                                                                        histories_per_step.val_losses,
+                                                                        histories_per_step.val_accuracies,
+                                                                        0,  # all_learning_rates.all_lr,
+                                                                        0,  # all_learning_rates.all_lr_alternative,
+                                                                        0)  # all_learning_rates.all_lr_logs)
+            pickle.dump(model_history_per_step, file, pickle.HIGHEST_PROTOCOL)
 
     if output_dir:
         # save the model
         savemodel_path = os.path.join(output_dir, 'saved_model')
+
         if not FLAGS.is_hyperparameter_tuning:
             # not saving model during hyper parameter tuning
             # savemodel_path = os.path.join(savemodel_path, suffix)
             model.save(os.path.join(savemodel_path, model.name))
 
-        # save history
+        if save_history_per_step:
+            # save history
+            search = re.search('gs://(.*?)/(.*)', output_dir)
+            if search is not None:
+                bucket_name = search.group(1)
+                blob_name = search.group(2)
+                output_folder = blob_name + '/history'
+                if FLAGS.is_hyperparameter_tuning:
+                    output_folder = os.path.join(output_folder, suffix)
+                mu.copy_local_directory_to_gcs(history_dir, bucket_name, output_folder)
+
+    if save_metadata:
+        # add meta data
+        dict_model['pretrained_transformer_model'] = FLAGS.pretrained_model_dir
+        dict_model['num_classes'] = FLAGS.num_classes
+
+        dict_data['train'] = FLAGS.input_train_tfrecords
+        dict_data['eval'] = FLAGS.input_eval_tfrecords
+
+        dict_parameter['use_decay_learning_rate'] = FLAGS.use_decay_learning_rate
+        dict_parameter['epochs'] = FLAGS.epochs
+        dict_parameter['steps_per_epoch_train'] = FLAGS.steps_per_epoch_train
+        dict_parameter['steps_per_epoch_eval'] = FLAGS.steps_per_epoch_eval
+        dict_parameter['n_steps_history'] = FLAGS.n_steps_history
+        dict_parameter['batch_size_train'] = FLAGS.batch_size_train
+        dict_parameter['batch_size_eval'] = FLAGS.batch_size_eval
+        dict_parameter['learning_rate'] = FLAGS.learning_rate
+        dict_parameter['epsilon'] = FLAGS.epsilon
+
+        dict_hardware['is_tpu'] = FLAGS.use_tpu
+
+        dict_type_job['is_hyperparameter_tuning'] = FLAGS.is_hyperparameter_tuning
+        dict_type_job['is_tpu'] = FLAGS.use_tpu
+
+        dict_software['tensorflow'] = tf.__version__
+        dict_software['transformer'] = __version__
+        dict_software['python'] = sys.version
+
+        # aggregate dictionaries
+        dict_all = {'model': dict_model,
+                    'data': dict_data,
+                    'parameter': dict_parameter,
+                    'hardware': dict_hardware,
+                    'results': dict_results,
+                    'type_job': dict_type_job,
+                    'software': dict_software}
+
+        # save metadata
         search = re.search('gs://(.*?)/(.*)', output_dir)
         if search is not None:
             bucket_name = search.group(1)
             blob_name = search.group(2)
-            output_folder = blob_name + '/history'
-            if FLAGS.is_hyperparameter_tuning:
-                output_folder = os.path.join(output_folder, suffix)
-            mu.copy_local_directory_to_gcs(history_dir, bucket_name, output_folder)
+            output_folder = blob_name + '/metadata'
 
-    # add meta data
-    dict_model['pretrained_transformer_model'] = FLAGS.pretrained_model_dir
-    dict_model['num_classes'] = FLAGS.num_classes
-
-    dict_data['train'] = FLAGS.input_train_tfrecords
-    dict_data['eval'] = FLAGS.input_eval_tfrecords
-
-    dict_parameter['use_decay_learning_rate'] = FLAGS.use_decay_learning_rate
-    dict_parameter['epochs'] = FLAGS.epochs
-    dict_parameter['steps_per_epoch_train'] = FLAGS.steps_per_epoch_train
-    dict_parameter['steps_per_epoch_eval'] = FLAGS.steps_per_epoch_eval
-    dict_parameter['n_steps_history'] = FLAGS.n_steps_history
-    dict_parameter['batch_size_train'] = FLAGS.batch_size_train
-    dict_parameter['batch_size_eval'] = FLAGS.batch_size_eval
-    dict_parameter['learning_rate'] = FLAGS.learning_rate
-    dict_parameter['epsilon'] = FLAGS.epsilon
-
-    dict_hardware['is_tpu'] = FLAGS.use_tpu
-
-    dict_type_job['is_hyperparameter_tuning'] = FLAGS.is_hyperparameter_tuning
-    dict_type_job['is_tpu'] = FLAGS.use_tpu
-
-    dict_software['tensorflow'] = tf.__version__
-    dict_software['transformer'] = __version__
-    dict_software['python'] = sys.version
-
-    # aggregate dictionaries
-    dict_all = {'model': dict_model,
-                'data': dict_data,
-                'parameter': dict_parameter,
-                'hardware': dict_hardware,
-                'results': dict_results,
-                'type_job': dict_type_job,
-                'software': dict_software}
-
-    # save metadata
-    search = re.search('gs://(.*?)/(.*)', output_dir)
-    if search is not None:
-        bucket_name = search.group(1)
-        blob_name = search.group(2)
-        output_folder = blob_name + '/metadata'
-
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob(output_folder + '/model_job_metadata.json')
-        blob.upload_from_string(
-            data=json.dumps(dict_all),
-            content_type='application/json'
-        )
+            storage_client = storage.Client()
+            bucket = storage_client.bucket(bucket_name)
+            blob = bucket.blob(output_folder + '/model_job_metadata.json')
+            blob.upload_from_string(
+                data=json.dumps(dict_all),
+                content_type='application/json'
+            )

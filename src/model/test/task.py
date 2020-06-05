@@ -21,14 +21,14 @@ flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR
 
 def main(argv):
 
-    logging.get_absl_handler().python_handler.stream = sys.stdout
+    # logging.get_absl_handler().python_handler.stream = sys.stdout
 
     # Instantiates a client
-    # client = google.cloud.logging.Client()
+    # original-1 client = google.cloud.logging.Client()
 
     # Connects the logger to the root logging handler; by default this captures
     # all logs at INFO level and higher
-    # client.setup_logging()
+    # original-1 client.setup_logging()
 
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     formatter = logger.Formatter(fmt)
@@ -49,6 +49,22 @@ def main(argv):
     #    print("       handler.propagate-->  ", handler.propagate)
     #    print("       handler.parent-->  ", handler.parent )
     #    print(dir(handler))
+    level_log = 'INFO'
+    root_logger = logger.getLogger()
+    # root_logger.handlers=[handler for handler in root_logger.handlers if isinstance(handler, (CloudLoggingHandler, ContainerEngineHandler, logging.ABSLHandler))]
+    #
+    for handler in root_logger.handlers:
+        print("----- handler ", handler)
+        print("---------class ", handler.__class__)
+        if handler.__class__ == logging.ABSLHandler:
+            handler.python_handler.stream = sys.stdout
+            handler.setLevel(level_log)
+            handler.handler.setStream(sys.stdout)
+
+    # root_logger = logger.getLogger()
+    # for h in root_logger.handlers:
+    #    print('handlers:', h)
+    #    root_logger.removeHandler(h)
 
     print(' 0 print --- ')
     logging.info(' 1 logging:')

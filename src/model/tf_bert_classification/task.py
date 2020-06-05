@@ -8,6 +8,7 @@ import os
 import tensorflow as tf
 # tf.debugging.set_log_device_placement(True)
 # tf.autograph.set_verbosity(10, alsologtostdout=False)
+from cloud_tpu_client import Client
 from transformers import (
     BertTokenizer,
     TFBertModel,
@@ -81,6 +82,7 @@ flags.mark_flag_as_required('pretrained_model_dir')
 def main(argv):
 
     tf.get_logger().propagate = False
+    # logger.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
     # fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     fmt = "[%(levelname)s] %(message)s"
@@ -129,11 +131,13 @@ def main(argv):
     #                 h.setLevel(level_log)
     #                 #print('    --> handlers =', h)
     #
-    # root_logger = logger.getLogger()
+    root_logger = logger.getLogger()
     # root_logger.handlers=[handler for handler in root_logger.handlers if isinstance(handler, (CloudLoggingHandler, ContainerEngineHandler, logging.ABSLHandler))]
     #
-    # for handler in root_logger.handlers:
-    #     #print("----- handler ", handler)
+    for handler in root_logger.handlers:
+        print("----- handler ", handler)
+        print("---------class ", handler.__class__)
+
     #     if handler.__class__ == CloudLoggingHandler:
     #         handler.setStream(sys.stdout)
     #         handler.setLevel(level_log)
@@ -228,13 +232,21 @@ def main(argv):
         logging.info('os.environ[CLOUD_ML_HP_METRIC_FILE]: {}'.format(os.environ['CLOUD_ML_HP_METRIC_FILE']))
         logging.info('os.environ[CLOUD_ML_TRIAL_ID]: {}'.format(os.environ['CLOUD_ML_TRIAL_ID']))
 
+        # variable name for hyper parameter tuning
+        metric_accuracy = os.environ['CLOUD_ML_HP_METRIC_TAG']
+
     if os.environ.get('TF_CONFIG') is not None:
         logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
     else:
         logging.error('os.environ[TF_CONFIG] doesn\'t exist !')
 
-    # define TPU strategy before any ops
     if FLAGS.use_tpu:
+        # Check or update the TensorFlow on the TPU cluster to match the one of the VM
+        logging.info('setting up TPU: check that TensorFlow version is the same on the VM and on the TPU cluster')
+        client_tpu = Client()
+
+        # define TPU strategy before any ops
+        client_tpu.configure_tpu_version(tf.__version__, restart_type='ifNeeded')
         logging.info('setting up TPU: cluster resolver')
         tpu_cluster_resolver = tf.distribute.cluster_resolver.TPUClusterResolver()
         logging.info('setting up TPU: \n {}'.format(tpu_cluster_resolver))
@@ -278,6 +290,11 @@ def main(argv):
     logging.info('Total number of batch: {:6}/{:6}'.format(FLAGS.steps_per_epoch_train * (FLAGS.epochs + 1),
                                                            FLAGS.steps_per_epoch_eval * 1))
     print('-- 00001')
+    # with tf.summary.create_file_writer(FLAGS.output_dir,
+    #                                   filename_suffix='.oup',
+    #                                   name='test').as_default():
+    #    tf.summary.scalar('metric_accuracy', 1.0, step=1)
+    # print('-- 00001')
     #  read TFRecords files, shuffle, map and batch size
     train_dataset = tf_bert.build_dataset(FLAGS.input_train_tfrecords, FLAGS.batch_size_train, 2048)
     valid_dataset = tf_bert.build_dataset(FLAGS.input_eval_tfrecords, FLAGS.batch_size_eval, 2048)
@@ -312,8 +329,10 @@ def main(argv):
                                decay_type=FLAGS.decay_type,
                                learning_rate=FLAGS.learning_rate,
                                s=FLAGS.s,
-                               n_batch_decay=FLAGS.n_batch_decay)
+                               n_batch_decay=FLAGS.n_batch_decay,
+                               metric_accuracy=metric_accuracy)
     print('-- 00006')
+
 
 if __name__ == '__main__':
     app.run(main)
