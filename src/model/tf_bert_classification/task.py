@@ -1,13 +1,6 @@
 import os
-# 0 = all messages are logged (default behavior)
-# 1 = INFO messages are not printed
-# 2 = INFO and WARNING messages are not printed
-# 3 = INFO, WARNING, and ERROR messages are not printed
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
-# os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
-import tensorflow as tf
-# tf.debugging.set_log_device_placement(True)
-# tf.autograph.set_verbosity(10, alsologtostdout=False)
+import json
+import pkgutil
 from cloud_tpu_client import Client
 from transformers import (
     BertTokenizer,
@@ -25,44 +18,42 @@ from absl import flags
 from absl import app
 import logging as logger
 
-FLAGS = flags.FLAGS
-
-# Maximum length, be be careful BERT max length is 512!
-MAX_LENGTH = 512
-
+# default parameters for training the model
+# compute and save accuracy and loss after N steps
+N_STEPS_HISTORY = 10
 # define default parameters
 BATCH_SIZE_TRAIN = 32
 BATCH_SIZE_VALID = 64
 EPOCHS = 1
 STEP_EPOCH_TRAIN = 10
 STEP_EPOCH_VALID = 1
-
-# hyper parameter
-learning_rate = 3e-5
-epsilon = 1e-08
-s = 0.95
-decay_type = 'exponential'
-n_batch_decay = 2
-
+# hyper parameters
+# adam parameters
+LEARNING_RATE = 3e-5
+EPSILON = 1e-08
+# learning rate decay parameters
+DECAY_LR = 0.95
+DECAY_TYPE = 'exponential'
+N_BATCH_DECAY = 2
 # number of classes
 NUM_CLASSES = 2
+# BERT Maximum length, be be careful BERT max length is 512!
+MAX_LENGTH = 512
 
-# config
-n_steps_history = 10
-
-# parameters for the training
-flags.DEFINE_float('learning_rate', learning_rate, 'learning rate')
-flags.DEFINE_float('s', s, 'decay of the learning rate, e.g. 0.9')
-flags.DEFINE_float('epsilon', epsilon, 'epsilon')
+# get parameters for the training
+FLAGS = flags.FLAGS
+flags.DEFINE_float('learning_rate', LEARNING_RATE, 'learning rate')
+flags.DEFINE_float('decay_learning_rate', DECAY_LR, 'decay of the learning rate, e.g. 0.9')
+flags.DEFINE_float('epsilon', EPSILON, 'epsilon')
 flags.DEFINE_integer('epochs', EPOCHS, 'The number of epochs to train')
 flags.DEFINE_integer('steps_per_epoch_train', STEP_EPOCH_TRAIN, 'The number of steps per epoch to train')
 flags.DEFINE_integer('batch_size_train', BATCH_SIZE_TRAIN, 'Batch size for training')
 flags.DEFINE_integer('steps_per_epoch_eval', STEP_EPOCH_VALID, 'The number of steps per epoch to evaluate')
 flags.DEFINE_integer('batch_size_eval', BATCH_SIZE_VALID, 'Batch size for evaluation')
 flags.DEFINE_integer('num_classes', NUM_CLASSES, 'number of classes in our model')
-flags.DEFINE_integer('n_steps_history', n_steps_history, 'number of step for which we want custom history')
-flags.DEFINE_integer('n_batch_decay', n_batch_decay, 'number of batches after which the learning rate gets update')
-flags.DEFINE_string('decay_type', decay_type, 'type of decay for the learning rate: exponential, stepwise, timebased, or constant')
+flags.DEFINE_integer('n_steps_history', N_STEPS_HISTORY, 'number of step for which we want custom history')
+flags.DEFINE_integer('n_batch_decay', N_BATCH_DECAY, 'number of batches after which the learning rate gets update')
+flags.DEFINE_string('decay_type', DECAY_TYPE, 'type of decay for the learning rate: exponential, stepwise, timebased, or constant')
 flags.DEFINE_string('input_train_tfrecords', None, 'input folder of tfrecords training data')
 flags.DEFINE_string('input_eval_tfrecords', None, 'input folder of tfrecords evaluation data')
 flags.DEFINE_string('output_dir', None, 'gs blob where are stored all the output of the model')
@@ -78,10 +69,37 @@ flags.mark_flag_as_required('input_eval_tfrecords')
 flags.mark_flag_as_required('output_dir')
 flags.mark_flag_as_required('pretrained_model_dir')
 
+# setup env variable for Tensorflow training before importing Tensorflow
+json_data = pkgutil.get_data('utils', 'env_variables.json')
+env_var = json.loads(json_data.decode('utf-8'))
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(env_var['TF_CPP_MIN_LOG_LEVEL'])
+os.environ['TF_CPP_MIN_VLOG_LEVEL'] = str(env_var['TF_CPP_MIN_VLOG_LEVEL'])
+
 
 def main(argv):
-
+    import tensorflow as tf  # need to be here to have the env variables defined
     tf.get_logger().propagate = False
+
+    # set level of verbosity
+    if FLAGS.verbosity_level == 'DEBUG':
+        logging.set_verbosity(logging.DEBUG)
+        print('logging.DEBUG')
+    elif FLAGS.verbosity_level == 'INFO':
+        logging.set_verbosity(logging.INFO)
+    elif FLAGS.verbosity_level == 'WARNING':
+        logging.set_verbosity(logging.WARNING)
+    elif FLAGS.verbosity_level == 'ERROR':
+        logging.set_verbosity(logging.ERROR)
+    elif FLAGS.verbosity_level == 'FATAL':
+        logging.set_verbosity(logging.FATAL)
+    else:
+        logging.set_verbosity(logging.INFO)
+
+    # set level of verbosity for Tensorflow
+    if FLAGS.verbosity_level == 'DEBUG':
+        tf.debugging.set_log_device_placement(True)
+        tf.autograph.set_verbosity(10, alsologtostdout=False)
+
     # logger.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
 
     # fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
@@ -91,8 +109,6 @@ def main(argv):
     logging.get_absl_handler().python_handler.stream = sys.stdout
     logging.set_stderrthreshold(logging.WARNING)
 
-    # set level of verbosity
-    logging.set_verbosity(FLAGS.verbosity)
     # level_log = 'INFO'
 
     # # Instantiates a client
@@ -188,6 +204,8 @@ def main(argv):
     # print('10 print --- ')
     # ## DEBUG
 
+    print('logging.get_verbosity()', logging.get_verbosity())
+
     # print flags
     abseil_flags = ['logtostderr', 'alsologtostderr', 'log_dir', 'v', 'verbosity', 'stderrthreshold',
                     'showprefixforinfo', 'run_with_pdb', 'pdb_post_mortem', 'run_with_profiling', 'profile_file',
@@ -219,6 +237,10 @@ def main(argv):
     logging.info(list(FLAGS))
     logging.debug('flags: \n {}'.format(FLAGS))
     logging.debug('env variables: \n{}'.format(os.environ))
+    logging.debug('current dir: {}'.format(os.getcwd()))
+    logging.debug('__package__: {}'.format(__package__))
+    logging.debug('__name__: {}'.format(__name__))
+    logging.debug('__file__: {}'.format(__file__))
 
     # only for HP tuning!
     if os.environ.get('CLOUD_ML_HP_METRIC_TAG') is not None:
@@ -234,6 +256,8 @@ def main(argv):
 
         # variable name for hyper parameter tuning
         metric_accuracy = os.environ['CLOUD_ML_HP_METRIC_TAG']
+    else:
+        metric_accuracy='NotDefined'
 
     if os.environ.get('TF_CONFIG') is not None:
         logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
@@ -289,7 +313,7 @@ def main(argv):
                                                            FLAGS.steps_per_epoch_eval))
     logging.info('Total number of batch: {:6}/{:6}'.format(FLAGS.steps_per_epoch_train * (FLAGS.epochs + 1),
                                                            FLAGS.steps_per_epoch_eval * 1))
-    print('-- 00001')
+
     # with tf.summary.create_file_writer(FLAGS.output_dir,
     #                                   filename_suffix='.oup',
     #                                   name='test').as_default():
@@ -298,24 +322,22 @@ def main(argv):
     #  read TFRecords files, shuffle, map and batch size
     train_dataset = tf_bert.build_dataset(FLAGS.input_train_tfrecords, FLAGS.batch_size_train, 2048)
     valid_dataset = tf_bert.build_dataset(FLAGS.input_eval_tfrecords, FLAGS.batch_size_eval, 2048)
-    print('-- 00002')
+
     # set repeat
     train_dataset = train_dataset.repeat(FLAGS.epochs + 1)
     valid_dataset = valid_dataset.repeat(2)
-    print('-- 00003')
+
     # reset all variables used by Keras
     tf.keras.backend.clear_session()
 
     # create and compile the Keras model in the context of strategy.scope
     with strategy.scope():
-        print('-- 00004')
         logging.debug('pretrained_model_dir={}'.format(pretrained_model_dir))
         model = tf_bert.create_model(pretrained_weights,
                                      pretrained_model_dir=pretrained_model_dir,
                                      num_labels=FLAGS.num_classes,
                                      learning_rate=FLAGS.learning_rate,
                                      epsilon=FLAGS.epsilon)
-    print('-- 00005')
     # train the model
     tf_bert.train_and_evaluate(model,
                                num_epochs=FLAGS.epochs,
@@ -328,10 +350,9 @@ def main(argv):
                                FLAGS=FLAGS,
                                decay_type=FLAGS.decay_type,
                                learning_rate=FLAGS.learning_rate,
-                               s=FLAGS.s,
+                               s=FLAGS.decay_learning_rate,
                                n_batch_decay=FLAGS.n_batch_decay,
                                metric_accuracy=metric_accuracy)
-    print('-- 00006')
 
 
 if __name__ == '__main__':

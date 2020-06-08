@@ -262,12 +262,16 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     start_time = time.time()
 
     logging.info('starting model.fit')
+    # verbose = 0 (silent)
+    # verbose = 1 (progress bar)
+    # verbose = 2 (one line per epoch)
+    verbose = 1
     history = model.fit(train_data,
                         epochs=num_epochs,
                         steps_per_epoch=steps_per_epoch,
                         validation_data=eval_data,
                         validation_steps=validation_steps,
-                        verbose=1,
+                        verbose=verbose,
                         callbacks=model_callbacks)
 
     # print execution time
