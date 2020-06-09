@@ -1,4 +1,3 @@
-import datetime
 from sklearn.externals import joblib
 import numpy as np
 import re
@@ -9,6 +8,9 @@ from tensorboard.backend.event_processing import event_accumulator
 from google.cloud import storage
 from timeit import default_timer as timer
 import math
+import subprocess
+import time
+from datetime import datetime
 
 
 def save_model(estimator, gcspath, name):
@@ -412,3 +414,35 @@ def get_trial_id():
         return suffix
     else:
         return 'trial_id_' + suffix
+
+
+def create_module_tar_archive(model_name):
+    # create the package
+    process = subprocess.Popen(['python', 'setup.py', 'sdist'], cwd=os.environ['DIR_PROJ'], shell=False,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # wait for the process to terminate
+    for line in process.stderr:
+        print(line.decode('utf8').replace('\n', ''))
+    for line in process.stdout:
+        print(line.decode('utf8').replace('\n', ''))
+
+    path_package = ''
+    name_package = ''
+    for root, dirs, files in os.walk(os.environ['DIR_PROJ'] + '/dist/'):
+        for filename in files:
+            print(root.split('/')[-4] + '/' + filename)
+            print('Last modified: {}'.format(time.ctime(os.path.getmtime(root + '/' + filename))))
+            print('Created: {}'.format(time.ctime(os.path.getctime(root + '/' + filename))))
+            name_package = filename
+            path_package = root + '/' + name_package
+    bucket_name = os.environ['BUCKET_STAGING_NAME']
+    output_folder = model_name + '_' + datetime.now().strftime("%Y_%m_%d_%H%M%S")
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(output_folder + '/' + name_package)
+    blob.upload_from_filename(path_package)
+
+    path_package_gcs = 'gs://' + os.environ['BUCKET_STAGING_NAME'] + '/' + output_folder + '/' + name_package
+
+    return path_package_gcs

@@ -257,7 +257,7 @@ def main(argv):
         # variable name for hyper parameter tuning
         metric_accuracy = os.environ['CLOUD_ML_HP_METRIC_TAG']
     else:
-        metric_accuracy='NotDefined'
+        metric_accuracy = 'NotDefined'
 
     if os.environ.get('TF_CONFIG') is not None:
         logging.info('os.environ[TF_CONFIG]: {}'.format(os.environ['TF_CONFIG']))
