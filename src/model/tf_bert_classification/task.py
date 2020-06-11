@@ -58,7 +58,7 @@ flags.DEFINE_string('input_train_tfrecords', None, 'input folder of tfrecords tr
 flags.DEFINE_string('input_eval_tfrecords', None, 'input folder of tfrecords evaluation data')
 flags.DEFINE_string('output_dir', None, 'gs blob where are stored all the output of the model')
 flags.DEFINE_string('pretrained_model_dir', None, 'number of classes in our model')
-flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
+flags.DEFINE_enum('verbosity_level', 'INFO', ['VERBOSE', 'DEBUG', 'INFO', 'WARNING', 'ERROR', 'FATAL'], 'verbosity in the logfile')
 flags.DEFINE_boolean('use_tpu', False, 'activate TPU for training')
 flags.DEFINE_boolean('use_decay_learning_rate', False, 'activate decay learning rate')
 flags.DEFINE_boolean('is_hyperparameter_tuning', False, 'automatic and inter flag')
@@ -96,7 +96,7 @@ def main(argv):
         logging.set_verbosity(logging.INFO)
 
     # set level of verbosity for Tensorflow
-    if FLAGS.verbosity_level == 'DEBUG':
+    if FLAGS.verbosity_level == 'VERBOSE':
         tf.debugging.set_log_device_placement(True)
         tf.autograph.set_verbosity(10, alsologtostdout=False)
 
@@ -256,6 +256,7 @@ def main(argv):
 
         # variable name for hyper parameter tuning
         metric_accuracy = os.environ['CLOUD_ML_HP_METRIC_TAG']
+        logging.info('metric accuracy name: {}'.format(metric_accuracy))
     else:
         metric_accuracy = 'NotDefined'
 
@@ -280,6 +281,7 @@ def main(argv):
         strategy = tf.distribute.experimental.TPUStrategy(tpu_cluster_resolver)
     else:
         strategy = tf.distribute.MirroredStrategy()
+        print('do nothing')
     logging.info('Number of devices: {}'.format(strategy.num_replicas_in_sync))
 
     # choose language's model and tokenizer
@@ -331,13 +333,13 @@ def main(argv):
     tf.keras.backend.clear_session()
 
     # create and compile the Keras model in the context of strategy.scope
-    with strategy.scope():
-        logging.debug('pretrained_model_dir={}'.format(pretrained_model_dir))
-        model = tf_bert.create_model(pretrained_weights,
-                                     pretrained_model_dir=pretrained_model_dir,
-                                     num_labels=FLAGS.num_classes,
-                                     learning_rate=FLAGS.learning_rate,
-                                     epsilon=FLAGS.epsilon)
+    #with strategy.scope():
+    logging.debug('pretrained_model_dir={}'.format(pretrained_model_dir))
+    model = tf_bert.create_model(pretrained_weights,
+                                 pretrained_model_dir=pretrained_model_dir,
+                                 num_labels=FLAGS.num_classes,
+                                 learning_rate=FLAGS.learning_rate,
+                                 epsilon=FLAGS.epsilon)
     # train the model
     tf_bert.train_and_evaluate(model,
                                num_epochs=FLAGS.epochs,

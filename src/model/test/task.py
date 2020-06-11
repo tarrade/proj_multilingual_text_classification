@@ -11,7 +11,7 @@ from absl import logging
 from absl import flags
 from absl import app
 import logging as logger
-# import google.cloud.logging
+import google.cloud.logging
 
 import sys
 
@@ -24,11 +24,11 @@ def main(argv):
     # logging.get_absl_handler().python_handler.stream = sys.stdout
 
     # Instantiates a client
-    # original-1 client = google.cloud.logging.Client()
+    client = google.cloud.logging.Client()
 
     # Connects the logger to the root logging handler; by default this captures
     # all logs at INFO level and higher
-    # original-1 client.setup_logging()
+    client.setup_logging()
 
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     formatter = logger.Formatter(fmt)
@@ -37,9 +37,8 @@ def main(argv):
     # set level of verbosity
     logging.set_verbosity(logging.DEBUG)
 
-    logging.set_stderrthreshold(logging.WARNING)
-    logging._warn_preinit_stderr = False
-
+    #logging.set_stderrthreshold(logging.WARNING)
+    #logging._warn_preinit_stderr = True
     # loggers = [logger.getLogger()]  # get the root logger
 
     # for handler in loggers:
@@ -49,22 +48,52 @@ def main(argv):
     #    print("       handler.propagate-->  ", handler.propagate)
     #    print("       handler.parent-->  ", handler.parent )
     #    print(dir(handler))
-    level_log = 'INFO'
-    root_logger = logger.getLogger()
+    #level_log = 'INFO'
+    #root_logger = logger.getLogger()
     # root_logger.handlers=[handler for handler in root_logger.handlers if isinstance(handler, (CloudLoggingHandler, ContainerEngineHandler, logging.ABSLHandler))]
     #
-    for handler in root_logger.handlers:
-        print("----- handler ", handler)
-        print("---------class ", handler.__class__)
-        if handler.__class__ == logging.ABSLHandler:
-            handler.python_handler.stream = sys.stdout
-            handler.setLevel(level_log)
-            handler.handler.setStream(sys.stdout)
+    #for handler in root_logger.handlers:
+    #    print("----- handler ", handler)
+    #    print("---------class ", handler.__class__)
+    #    if handler.__class__ == logging.ABSLHandler:
+    #        handler.python_handler.stream = sys.stdout
+    #        #handler.handler.setStream(sys.stdout)
+    tf.get_logger().propagate = False
+    root_logger = logger.getLogger()
+    print(' root_logger :', root_logger)
+    print(' root_logger.handlers :',  root_logger.handlers)
+    print(' len(root_logger) :', len(root_logger.handlers))
+    for h in root_logger.handlers:
+        print('handlers:', h)
+        print("---------class ", h.__class__)
+        if h.__class__ == logging.ABSLHandler:
+            print('++logging.ABSLHandler')
+            h.python_handler.stream = sys.stdout
+            h.setLevel(logger.INFO)
+        if h.__class__ == google.cloud.logging.handlers.handlers.CloudLoggingHandler:
+            print('++CloudLoggingHandler')
+            h.setLevel(logger.CRITICAL)
+            h.setStream(sys.stdout)
+            logger.getLogger().addHandler(h)
+        if h.__class__ == logger.StreamHandler:
+            print('++logging.StreamHandler')
+            h.setLevel(logger.CRITICAL)
+            h.setStream(sys.stdout)
+            logger.getLogger().addHandler(h)
 
-    # root_logger = logger.getLogger()
-    # for h in root_logger.handlers:
-    #    print('handlers:', h)
-    #    root_logger.removeHandler(h)
+    logging.set_stderrthreshold(logging.WARNING)
+    #handler = client.get_default_handler()
+    #print('hhh', handler)
+    #logger.getLogger().setLevel(logger.INFO)
+    #logger.getLogger().addHandler(handler)
+
+    #handler = logger.StreamHandler(sys.stderr)
+    #handler.setLevel(logger.CRITICAL)
+    #logger.getLogger().addHandler(handler)
+
+    #handler = logger.StreamHandler(sys.stdout)
+    #handler.setLevel(logger.CRITICAL)
+    #logger.getLogger().addHandler(handler)
 
     print(' 0 print --- ')
     logging.info(' 1 logging:')

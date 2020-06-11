@@ -160,16 +160,16 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
 
     # for debugging only
     activate_tensorboard = True
-    activate_hp_tensorboard = True
+    activate_hp_tensorboard = False  # True
     activate_lr = False
     save_checkpoints = True
     save_history_per_step = True
     save_metadata = True
     activate_timing = True
     # drop official method that is not working
-    activate_tf_summary_hp = False
+    activate_tf_summary_hp = True  #  False
     # hardcoded way of doing hp
-    activate_hardcoded_hp = True
+    activate_hardcoded_hp = False #  True
 
     if FLAGS.is_hyperparameter_tuning:
         # get trial ID
