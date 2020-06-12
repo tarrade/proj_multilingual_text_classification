@@ -21,6 +21,26 @@ flags.DEFINE_enum('verbosity_level', 'INFO', ['DEBUG', 'INFO', 'WARNING', 'ERROR
 
 def main(argv):
 
+    # set level of verbosity
+    if FLAGS.verbosity_level == 'DEBUG':
+        logging.set_verbosity(logging.DEBUG)
+        print('logging.DEBUG')
+    elif FLAGS.verbosity_level == 'INFO':
+        logging.set_verbosity(logging.INFO)
+        print('logging.INFO')
+    elif FLAGS.verbosity_level == 'WARNING':
+        logging.set_verbosity(logging.WARNING)
+        print('logging.WARNING')
+    elif FLAGS.verbosity_level == 'ERROR':
+        logging.set_verbosity(logging.ERROR)
+        print('logging.ERROR')
+    elif FLAGS.verbosity_level == 'FATAL':
+        logging.set_verbosity(logging.FATAL)
+        print('logging.FATAL')
+    else:
+        logging.set_verbosity(logging.INFO)
+        print('logging.DEFAULT -> INFO')
+
     # logging.get_absl_handler().python_handler.stream = sys.stdout
 
     # Instantiates a client
