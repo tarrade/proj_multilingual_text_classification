@@ -22,7 +22,7 @@ jobs:
             username = process.env.USER;
             github.issues.createComment({
             issue_number:context.issue.number,
-            owner: context.repo.owne,
+            owner: context.repo.owner,
             repo: context.repo.repo,
             body: `@${username} Thanks for reporting this issue !`
             })
