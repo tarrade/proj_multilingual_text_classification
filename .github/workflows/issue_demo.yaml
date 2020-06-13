@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-site:
-    runs-on: ubuntu-test
+    runs-on: ubuntu-latest
     steps:
 
       - name: see payload
