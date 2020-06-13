@@ -19,7 +19,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            usernaame = process.env.USER;
+            username = process.env.USER;
             github.issues.createComment({
             issue_number:context.issue.number,
             owner: context.repo.owne,
