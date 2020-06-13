@@ -1,23 +1,24 @@
-build-site:
-  runs-on: ubuntu-test
-  steps:
+jobs:
+  build-site:
+    runs-on: ubuntu-test
+    steps:
 
-    - name: see payload
-      run: echo "$PAYLOAD"
-      env:
-        PAYLOAD: ${{ toJSON(github.event) }}
+      - name: see payload
+        run: echo "$PAYLOAD"
+        env:
+          PAYLOAD: ${{ toJSON(github.event) }}
 
-    - name: execute a github sript
-      uses: actions/github-script@0.9.0
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          usernaame = process.env.USER;
-          github.issues.createComment({
-          issue_number:context.issue.number,
-          owner: context.repo.owne,
-          repo: context.repo.repo,
-          body: `@${username} Thanks for reporting this issue !`
-          })
-      env:
-        USER: ${{ github.actor }}
+      - name: execute a github sript
+        uses: actions/github-script@0.9.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            usernaame = process.env.USER;
+            github.issues.createComment({
+            issue_number:context.issue.number,
+            owner: context.repo.owne,
+            repo: context.repo.repo,
+            body: `@${username} Thanks for reporting this issue !`
+            })
+        env:
+          USER: ${{ github.actor }}
