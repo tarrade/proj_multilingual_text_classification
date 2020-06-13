@@ -1,3 +1,9 @@
+name: Comments on new issues
+
+on:
+  issues:
+    types: [opened]
+
 jobs:
   build-site:
     runs-on: ubuntu-test
