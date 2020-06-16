@@ -167,9 +167,9 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     save_metadata = True
     activate_timing = True
     # drop official method that is not working
-    activate_tf_summary_hp = True  #  False
+    activate_tf_summary_hp = True  # False
     # hardcoded way of doing hp
-    activate_hardcoded_hp = False #  True
+    activate_hardcoded_hp = False  # True
 
     if FLAGS.is_hyperparameter_tuning:
         # get trial ID

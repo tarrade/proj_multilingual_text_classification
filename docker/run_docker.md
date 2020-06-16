@@ -10,3 +10,6 @@ other way when using CMD instead of ENTRYPOINT:
 ```docker run --entrypoint=python $IMAGE_URI -m model.tf_bert_classification.task --verbosity_level=DEBUG```
 ```docker run image_id``` 
 ```docker run --rm image_id python -m model.test.task --verbosity_level=DEBUG``` 
+
+## Push yhe images on the GCP Container Registry
+```docker push $IMAGE_URI```

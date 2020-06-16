@@ -5,7 +5,9 @@ pwd
 
 # copy config files localy
 cp docker/test/Dockerfile test-docker/.
+cp docker/entrypoint.sh test-docker/.
 cp -r src test-docker/.
+cp env/environment.yaml test-docker/.
 
 cd test-docker
 

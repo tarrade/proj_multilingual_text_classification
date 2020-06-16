@@ -1,30 +1,52 @@
 FROM gcr.io/deeplearning-platform-release/base-cu101
+
+# checking that the right shell is used in the image the build and later when the container is launched from the image
+RUN echo $0
+# checking the python version
 RUN python --version
-RUN pip freeze
-RUN conda info -e
+# check env variables
+RUN printenv
+# active in the shell
+SHELL ["/bin/bash", "-c"]
 
-RUN pip install scikit-learn==0.22.1 grpcio==1.24.3 transformers==2.9.0 tensorflow==2.2.0 tensorboard==2.2.1 cloud-tpu-client==0.8 tensorboard_plugin_profile==2.2.0 absl-py==0.9.0 pip==20.1 google-cloud-bigquery==1.24.0 google-cloud-storage==1.26.0 google-cloud-logging==1.15.0 google-cloud-translate==2.0.1 google-resumable-media==0.5.0 cloudml-hypertune==0.1.0.dev6
+# copy the entrypoint script
+ADD entrypoint.sh /entrypoint.sh
+# set the right permission
+RUN chmod +x /entrypoint.sh
 
+# adding the environment files in the docker image
+ADD environment.yaml environment.yaml
+# update conda manager
+RUN conda update -n base conda -y
+# create the conda env
+RUN conda env create -f environment.yaml
+
+# copy the python code structure
 COPY src /src
+# add the code in the python path
 ENV PYTHONPATH ${PYTHONPATH}:/src
 
-RUN echo '[GoogleCompute]\nservice_account = default' > /etc/boto.cfg
+# activate conda
+RUN conda init bash
+RUN conda info -e
+SHELL ["conda", "run", "-n", "env_multilingual_class", "/bin/bash", "-c"]
 
-#CMD ["python", "-m", "model.test.task"]
-#ENTRYPOINT ["python", "-m", "model.test.task"]
+# check the conda env
+RUN conda info -e
+RUN conda list -n env_multilingual_class
+
+## clean all downloaded packages
+#RUN conda clean -a -y
+
+# option
+#ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.tf_bert_classification.task"]
+
+# activate conda env
+ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
 ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"]
 
-#FROM google/cloud-sdk:latest
-#RUN apt-get update -y && apt-get install --no-install-recommends -y -q ca-certificates python3-dev python3-setuptools python3-pip
-#RUN python3 -m pip install tensorflow==1.10 jupyter papermill
-#COPY run_notebook.sh ./
-#ENTRYPOINT ["bash", "./run_notebook.sh"]
-
-#FROM gcr.io/deeplearning-platform-release/tf2-cpu
-#COPY babyweight_tf2 /babyweight_tf2
-#RUN apt update && \
-#    apt install --yes python3-pip && \
-#    pip3 install --upgrade --quiet tf-nightly-2.0-preview
-#
-#ENV PYTHONPATH ${PYTHONPATH}:/babyweight_tf2
-#CMD ["python3", "-m", "trainer.task"]
+#ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.test.task"]
+#ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.tf_bert_classification.task"]
+#ENTRYPOINT ["/entrypoint.sh", "python", "-m", "model.tf_bert_classification.task"]
+#ENTRYPOINT ["/entrypoint.sh", "python", "-m", "model.test.task"]
+#ENTRYPOINT ["/entrypoint.sh"]

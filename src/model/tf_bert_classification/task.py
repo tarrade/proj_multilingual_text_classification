@@ -333,13 +333,13 @@ def main(argv):
     tf.keras.backend.clear_session()
 
     # create and compile the Keras model in the context of strategy.scope
-    #with strategy.scope():
-    logging.debug('pretrained_model_dir={}'.format(pretrained_model_dir))
-    model = tf_bert.create_model(pretrained_weights,
-                                 pretrained_model_dir=pretrained_model_dir,
-                                 num_labels=FLAGS.num_classes,
-                                 learning_rate=FLAGS.learning_rate,
-                                 epsilon=FLAGS.epsilon)
+    with strategy.scope():
+        logging.debug('pretrained_model_dir={}'.format(pretrained_model_dir))
+        model = tf_bert.create_model(pretrained_weights,
+                                     pretrained_model_dir=pretrained_model_dir,
+                                     num_labels=FLAGS.num_classes,
+                                     learning_rate=FLAGS.learning_rate,
+                                     epsilon=FLAGS.epsilon)
     # train the model
     tf_bert.train_and_evaluate(model,
                                num_epochs=FLAGS.epochs,

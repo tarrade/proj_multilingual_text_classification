@@ -55,10 +55,10 @@ def main(argv):
     logging.get_absl_handler().setFormatter(formatter)
 
     # set level of verbosity
-    logging.set_verbosity(logging.DEBUG)
+    # logging.set_verbosity(logging.DEBUG)
 
-    #logging.set_stderrthreshold(logging.WARNING)
-    #logging._warn_preinit_stderr = True
+    # logging.set_stderrthreshold(logging.WARNING)
+    # logging._warn_preinit_stderr = True
     # loggers = [logger.getLogger()]  # get the root logger
 
     # for handler in loggers:
@@ -68,11 +68,11 @@ def main(argv):
     #    print("       handler.propagate-->  ", handler.propagate)
     #    print("       handler.parent-->  ", handler.parent )
     #    print(dir(handler))
-    #level_log = 'INFO'
-    #root_logger = logger.getLogger()
+    # level_log = 'INFO'
+    # root_logger = logger.getLogger()
     # root_logger.handlers=[handler for handler in root_logger.handlers if isinstance(handler, (CloudLoggingHandler, ContainerEngineHandler, logging.ABSLHandler))]
     #
-    #for handler in root_logger.handlers:
+    # for handler in root_logger.handlers:
     #    print("----- handler ", handler)
     #    print("---------class ", handler.__class__)
     #    if handler.__class__ == logging.ABSLHandler:
@@ -81,7 +81,7 @@ def main(argv):
     tf.get_logger().propagate = False
     root_logger = logger.getLogger()
     print(' root_logger :', root_logger)
-    print(' root_logger.handlers :',  root_logger.handlers)
+    print(' root_logger.handlers :', root_logger.handlers)
     print(' len(root_logger) :', len(root_logger.handlers))
     for h in root_logger.handlers:
         print('handlers:', h)
@@ -102,18 +102,18 @@ def main(argv):
             logger.getLogger().addHandler(h)
 
     logging.set_stderrthreshold(logging.WARNING)
-    #handler = client.get_default_handler()
-    #print('hhh', handler)
-    #logger.getLogger().setLevel(logger.INFO)
-    #logger.getLogger().addHandler(handler)
+    # handler = client.get_default_handler()
+    # print('hhh', handler)
+    # logger.getLogger().setLevel(logger.INFO)
+    # logger.getLogger().addHandler(handler)
 
-    #handler = logger.StreamHandler(sys.stderr)
-    #handler.setLevel(logger.CRITICAL)
-    #logger.getLogger().addHandler(handler)
+    # handler = logger.StreamHandler(sys.stderr)
+    # handler.setLevel(logger.CRITICAL)
+    # logger.getLogger().addHandler(handler)
 
-    #handler = logger.StreamHandler(sys.stdout)
-    #handler.setLevel(logger.CRITICAL)
-    #logger.getLogger().addHandler(handler)
+    # handler = logger.StreamHandler(sys.stdout)
+    # handler.setLevel(logger.CRITICAL)
+    # logger.getLogger().addHandler(handler)
 
     print(' 0 print --- ')
     logging.info(' 1 logging:')
