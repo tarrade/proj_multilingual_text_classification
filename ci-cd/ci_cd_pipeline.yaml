@@ -16,7 +16,7 @@ steps:
   env:
   - 'DOCKERFILE=${_DOCKERFILE}'
   id: Copy files
-
+  dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
 
 # Set and print env variables for its execution
 - name: 'debian'
