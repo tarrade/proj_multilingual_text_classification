@@ -12,22 +12,22 @@ steps:
 - name: 'debian'
   args:
   - 'bash'
-  - 'copy_files.sh'
+  - 'proj_multilingual_text_classification/docker/${_DOCKERFILE}/copy_files.sh'
   env:
   - 'DOCKERFILE=${_DOCKERFILE}'
   id: Copy files
-  dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
 
 # Set and print env variables for its execution
 - name: 'debian'
   args: 
   - 'bash'
-  - 'proj_multilingual_text_classification/docker/${_DOCKERFILE}/check_env.sh'
+  - 'check_env.sh'
   env:
   - 'PROJECT=$PROJECT_ID'
   - 'TAG=${_TAG}'
   - 'DOCKERFILE=${_DOCKERFILE}'
   id: Check env variables
+  dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
 
 
 # Check the config of Docker
