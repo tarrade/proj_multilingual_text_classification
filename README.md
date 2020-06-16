@@ -1,4 +1,5 @@
 ![Python application](https://github.com/tarrade/proj_multilingual_text_classification/workflows/Python%20application/badge.svg)
+[![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-376/)
 
 # Multilingual text classification using embedding, bert and deep learning
 
