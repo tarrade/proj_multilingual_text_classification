@@ -11,6 +11,7 @@ steps:
 
 - name: 'debian'
   args:
+  - 'bash'
   - 'copy_files.sh'
   env:
   - 'DOCKERFILE=${_DOCKERFILE}'
