@@ -77,7 +77,7 @@ os.environ['TF_CPP_MIN_VLOG_LEVEL'] = str(env_var['TF_CPP_MIN_VLOG_LEVEL'])
 
 
 def main(argv):
-    # import tensorflow as tf  # need to be here to have the env variables defined
+    import tensorflow as tf  # need to be here to have the env variables defined
     tf.get_logger().propagate = False
 
     # set level of verbosity
