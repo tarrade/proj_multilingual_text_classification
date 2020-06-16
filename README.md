@@ -1,4 +1,11 @@
 ![Python application](https://github.com/tarrade/proj_multilingual_text_classification/workflows/Python%20application/badge.svg)
+[![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-376/)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/tarrade/proj_multilingual_text_classification)
+![GitHub issues](https://img.shields.io/github/issues-raw/tarrade/proj_multilingual_text_classification)
+![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/tarrade/proj_multilingual_text_classification)
+![GitHub contributors](https://img.shields.io/github/contributors/tarrade/proj_multilingual_text_classification)
+[![PEP8](https://img.shields.io/badge/code%20style-pep8-green.svg)](https://www.python.org/dev/peps/pep-0008/)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 
 # Multilingual text classification using embedding, bert and deep learning
 
