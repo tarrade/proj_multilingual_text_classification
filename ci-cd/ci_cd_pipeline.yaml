@@ -9,6 +9,14 @@ steps:
   id: Clone Github
 
 
+- name: 'debian'
+  args:
+  - 'copy_files.sh'
+  env:
+  - 'DOCKERFILE=${_DOCKERFILE}'
+  id: Copy files
+
+
 # Set and print env variables for its execution
 - name: 'debian'
   args: 
@@ -21,13 +29,6 @@ steps:
   id: Check env variables
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
 
-
-- name: 'debian'
-  args:
-  - 'copy_files.sh'
-  env:
-  - 'DOCKERFILE=${_DOCKERFILE}'
-  id: Copy jupyter lab extensions scrip
 
 # Check the config of Docker
 - name: 'gcr.io/cloud-builders/docker'
