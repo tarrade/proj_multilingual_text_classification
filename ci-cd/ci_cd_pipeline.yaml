@@ -23,23 +23,11 @@ steps:
 
 
 - name: 'debian'
-  args: 
-  - 'cp'
-  - 'proj_multilingual_text_classification/env/jupyter-notebook.yaml'
-  - 'proj_multilingual_text_classification/docker/${_DOCKERFILE}/.'
-  id: Copy base env
-
-
-- name: 'debian'
   args:
-    - '-c'
-    - |
-    cp proj_multilingual_text_classification/docker/test/Dockerfile proj_multilingual_text_classification/docker/${_DOCKERFILE}/. \
-    && cp proj_multilingual_text_classification/docker/entrypoint.sh proj_multilingual_text_classification/docker/${_DOCKERFILE}/. \
-    && cp -r proj_multilingual_text_classification/src proj_multilingual_text_classification/docker/${_DOCKERFILE}/. \
-    && cp proj_multilingual_text_classification/env/environment.yaml proj_multilingual_text_classification/docker/${_DOCKERFILE}/.
+  - 'copy_files.sh'
+  env:
+  - 'DOCKERFILE=${_DOCKERFILE}'
   id: Copy jupyter lab extensions scrip
-
 
 # Check the config of Docker
 - name: 'gcr.io/cloud-builders/docker'
