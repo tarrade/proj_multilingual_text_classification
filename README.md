@@ -1,3 +1,5 @@
+![Python application](https://github.com/tarrade/proj_multilingual_text_classification/workflows/Python%20application/badge.svg)
+
 # Multilingual text classification using embedding, bert and deep learning
 
 ## Introduction
