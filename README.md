@@ -5,6 +5,7 @@
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/tarrade/proj_multilingual_text_classification)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![PEP8](https://img.shields.io/badge/code%20style-pep8-green.svg)](https://www.python.org/dev/peps/pep-0008/)
+![Tensorflow](https://img.shields.io/pypi/v/tensorflow)
 
 # Multilingual text classification using embedding, bert and deep learning
 
