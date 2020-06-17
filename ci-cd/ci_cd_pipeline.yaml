@@ -125,7 +125,7 @@ steps:
   args:
     - '-c'
     - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest --build-arg IMAGE=${_IMAGE_GPU} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest . ; fi'
-  id: 'build_docker_image_cpu'
+  id: 'build_docker_image_gpu'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
   waitFor: ['restore_cache_from_container_registry_gpu']
 
@@ -144,9 +144,9 @@ steps:
   args:
     - '-c'
     - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE}); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
-  id: 'check_tag_image_exist_container_registry_cpu'
+  id: 'check_tag_image_exist_container_registry_gpu'
   waitFor: ['push_image_container_registry_gpu']
-## end step 2: base GCPU
+## end step 2: base GPU
 
 ## final step
 
