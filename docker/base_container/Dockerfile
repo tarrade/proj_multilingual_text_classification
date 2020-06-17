@@ -1,4 +1,11 @@
-FROM gcr.io/deeplearning-platform-release/base-cu101
+# Specify the base image and tag
+ARG IMAGE=base-cu101:m49
+
+FROM gcr.io/deeplearning-platform-release/$IMAGE
+
+# trick to have the tag after the from
+ARG IMAGE
+RUN echo m${IMAGE}
 
 # checking that the right shell is used in the image the build and later when the container is launched from the image
 RUN echo $0
@@ -8,11 +15,6 @@ RUN python --version
 RUN printenv
 # active in the shell
 SHELL ["/bin/bash", "-c"]
-
-# copy the entrypoint script
-ADD entrypoint.sh /entrypoint.sh
-# set the right permission
-RUN chmod +x /entrypoint.sh
 
 # adding the environment files in the docker image
 ADD environment.yaml environment.yaml
@@ -38,15 +40,6 @@ RUN conda list -n env_multilingual_class
 ## clean all downloaded packages
 #RUN conda clean -a -y
 
-# option
-#ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.tf_bert_classification.task"]
-
 # activate conda env
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
 ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"]
-
-#ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.test.task"]
-#ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.tf_bert_classification.task"]
-#ENTRYPOINT ["/entrypoint.sh", "python", "-m", "model.tf_bert_classification.task"]
-#ENTRYPOINT ["/entrypoint.sh", "python", "-m", "model.test.task"]
-#ENTRYPOINT ["/entrypoint.sh"]

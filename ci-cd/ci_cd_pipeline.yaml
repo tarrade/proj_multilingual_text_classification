@@ -12,7 +12,7 @@ steps:
 - name: 'debian'
   args:
   - 'bash'
-  - 'proj_multilingual_text_classification/docker/${_DOCKERFILE}/copy_files.sh'
+  - 'proj_multilingual_text_classification/docker/copy_files.sh'
   env:
   - 'DOCKERFILE=${_DOCKERFILE}'
   id: 'copy_files'
