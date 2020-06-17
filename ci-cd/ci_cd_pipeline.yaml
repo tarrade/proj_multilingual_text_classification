@@ -44,7 +44,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'if [ ${_BUILD} == "true" ]; then docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest || exit 0; fi'
+    - 'if [ ${_BUILD} == "true" ]; then docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE}_cpu:latest || exit 0; fi'
   id: 'restore_cache_from_container_registry_cpu'
   waitFor: ['check_config_docker_cpu']
 
@@ -53,7 +53,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest --build-arg IMAGE=${_IMAGE_CPU} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest . ; fi'
+    - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}_cpu:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}_cpu:latest --build-arg IMAGE=${_IMAGE_CPU} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}_cpu:latest . ; fi'
   id: 'build_docker_image_cpu'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
   waitFor: ['restore_cache_from_container_registry_cpu']
@@ -63,7 +63,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'if [ ${_BUILD} == "true" ]; then docker push gcr.io/$PROJECT_ID/${_DOCKERFILE}; fi'
+    - 'if [ ${_BUILD} == "true" ]; then docker push gcr.io/$PROJECT_ID/${_DOCKERFILE}_cpu; fi'
   id: 'push_image_container_registry_cpu'
   waitFor: ['build_docker_image_cpu']
 
@@ -72,7 +72,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE}); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
+    - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE}_cpu); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
   id: 'check_tag_image_exist_container_registry_cpu'
   waitFor: ['push_image_container_registry_cpu']
 ## end step 1: base CPU
@@ -115,7 +115,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'if [ ${_BUILD} == "true" ]; then docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest || exit 0; fi'
+    - 'if [ ${_BUILD} == "true" ]; then docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE}_gpu:latest || exit 0; fi'
   id: 'restore_cache_from_container_registry_gpu'
   waitFor: ['check_config_docker_gpu']
 
@@ -124,7 +124,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest --build-arg IMAGE=${_IMAGE_GPU} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest . ; fi'
+    - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}_gpu:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}_gpu:latest --build-arg IMAGE=${_IMAGE_GPU} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}_gpu:latest . ; fi'
   id: 'build_docker_image_gpu'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
   waitFor: ['restore_cache_from_container_registry_gpu']
@@ -134,7 +134,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'if [ ${_BUILD} == "true" ]; then docker push gcr.io/$PROJECT_ID/${_DOCKERFILE}; fi'
+    - 'if [ ${_BUILD} == "true" ]; then docker push gcr.io/$PROJECT_ID/${_DOCKERFILE}_gpu; fi'
   id: 'push_image_container_registry_gpu'
   waitFor: ['build_docker_image_gpu']
 
@@ -143,7 +143,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE}); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
+    - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE}_gpu); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
   id: 'check_tag_image_exist_container_registry_gpu'
   waitFor: ['push_image_container_registry_gpu']
 ## end step 2: base GPU
