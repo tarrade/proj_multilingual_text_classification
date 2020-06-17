@@ -15,7 +15,7 @@ steps:
   - 'proj_multilingual_text_classification/docker/copy_files.sh'
   env:
   - 'DOCKERFILE=${_DOCKERFILE}'
-  id: 'copy_files'
+  id: 'copy_files_cpu'
 
 # Set and print env variables for its execution
 - name: 'debian'
@@ -28,16 +28,16 @@ steps:
   - 'DOCKERFILE=${_DOCKERFILE}'
   - 'IMAGE_CPU=${_IMAGE_CPU}'
   - 'IMAGE_GPU=${_IMAGE_GPU}'
-  id: 'check_env_variables'
+  id: 'check_env_variables_cpu'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
-  waitFor: ['copy_files']
+  waitFor: ['copy_files_cpu']
 
 # Check the config of Docker
 - name: 'gcr.io/cloud-builders/docker'
   args:
   - 'info'
-  id: 'check_config_docker'
-  waitFor: ['check_env_variables']
+  id: 'check_config_docker_cpu'
+  waitFor: ['check_env_variables_cpu']
 
 ## Restore cache
 - name: 'gcr.io/cloud-builders/docker'
@@ -45,8 +45,8 @@ steps:
   args:
     - '-c'
     - 'if [ ${_BUILD} == "true" ]; then docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest || exit 0; fi'
-  id: 'restore_cache_from_container_registry'
-  waitFor: ['check_config_docker']
+  id: 'restore_cache_from_container_registry_cpu'
+  waitFor: ['check_config_docker_cpu']
 
 ## Build docker image with the tag
 - name: 'gcr.io/cloud-builders/docker'
@@ -54,9 +54,9 @@ steps:
   args:
     - '-c'
     - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest --build-arg IMAGE=${_IMAGE_CPU} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest . ; fi'
-  id: 'build_docker_image'
+  id: 'build_docker_image_cpu'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
-  waitFor: ['restore_cache_from_container_registry']
+  waitFor: ['restore_cache_from_container_registry_cpu']
 
 ## Push image in Container Registry with a tag and latest
 - name: 'gcr.io/cloud-builders/docker'
@@ -64,8 +64,8 @@ steps:
   args:
     - '-c'
     - 'if [ ${_BUILD} == "true" ]; then docker push gcr.io/$PROJECT_ID/${_DOCKERFILE}; fi'
-  id: 'push_image_container_registry'
-  waitFor: ['build_docker_image']
+  id: 'push_image_container_registry_cpu'
+  waitFor: ['build_docker_image_cpu']
 
 ## Check if a give tag of an image exist in Container Registry with a given tag
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -73,9 +73,80 @@ steps:
   args:
     - '-c'
     - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE}); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
-  id: 'check_tag_image_exist_container_registry'
-  waitFor: ['push_image_container_registry']
+  id: 'check_tag_image_exist_container_registry_cpu'
+  waitFor: ['push_image_container_registry_cpu']
 ## end step 1: base CPU
+
+## step 2: base GPU
+# Copy configuration files
+- name: 'debian'
+  args:
+  - 'bash'
+  - 'proj_multilingual_text_classification/docker/copy_files.sh'
+  env:
+  - 'DOCKERFILE=${_DOCKERFILE}'
+  id: 'copy_files_gpu'
+  waitFor: ['-'] # run in parallel os task 2
+
+# Set and print env variables for its execution
+- name: 'debian'
+  args:
+  - 'bash'
+  - 'check_env.sh'
+  env:
+  - 'PROJECT=$PROJECT_ID'
+  - 'TAG=${_TAG}'
+  - 'DOCKERFILE=${_DOCKERFILE}'
+  - 'IMAGE_CPU=${_IMAGE_CPU}'
+  - 'IMAGE_GPU=${_IMAGE_GPU}'
+  id: 'check_env_variables_gpu'
+  dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
+  waitFor: ['copy_files_gpu']
+
+# Check the config of Docker
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+  - 'info'
+  id: 'check_config_docker_gpu'
+  waitFor: ['check_env_variables_gpu']
+
+## Restore cache
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'if [ ${_BUILD} == "true" ]; then docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest || exit 0; fi'
+  id: 'restore_cache_from_container_registry_gpu'
+  waitFor: ['check_config_docker_gpu']
+
+## Build docker image with the tag
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest --build-arg IMAGE=${_IMAGE_GPU} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest . ; fi'
+  id: 'build_docker_image_cpu'
+  dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
+  waitFor: ['restore_cache_from_container_registry_gpu']
+
+## Push image in Container Registry with a tag and latest
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'if [ ${_BUILD} == "true" ]; then docker push gcr.io/$PROJECT_ID/${_DOCKERFILE}; fi'
+  id: 'push_image_container_registry_gpu'
+  waitFor: ['build_docker_image_gpu']
+
+## Check if a give tag of an image exist in Container Registry with a given tag
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE}); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
+  id: 'check_tag_image_exist_container_registry_cpu'
+  waitFor: ['push_image_container_registry_gpu']
+## end step 2: base GCPU
 
 ## final step
 

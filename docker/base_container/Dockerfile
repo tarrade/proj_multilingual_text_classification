@@ -5,7 +5,7 @@ FROM gcr.io/deeplearning-platform-release/$IMAGE
 
 # trick to have the tag after the from
 ARG IMAGE
-RUN echo m${IMAGE}
+RUN echo ${IMAGE}
 
 # checking that the right shell is used in the image the build and later when the container is launched from the image
 RUN echo $0
