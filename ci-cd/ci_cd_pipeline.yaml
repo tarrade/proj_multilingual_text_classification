@@ -157,7 +157,7 @@ steps:
     - '-c'
     - 'if [ ${_BUILD} == "true" ]; then docker images ; fi'
   id: 'check_size_all_images'
-  waitFor: ['check_tag_image_exist_container_registry']
+  waitFor: ['check_tag_image_exist_container_registry_cpu','check_tag_image_exist_container_registry_gpu']
 
 substitutions:
     _IMAGE_CPU: base-cu101:m49
