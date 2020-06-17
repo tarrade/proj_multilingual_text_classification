@@ -38,7 +38,7 @@ RUN conda info -e
 RUN conda list -n env_multilingual_class
 
 ## clean all downloaded packages
-#RUN conda clean -a -y
+RUN conda clean -a -y
 
 # activate conda env
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
