@@ -26,6 +26,8 @@ steps:
   - 'PROJECT=$PROJECT_ID'
   - 'TAG=${_TAG}'
   - 'DOCKERFILE=${_DOCKERFILE}'
+  - 'IMAGE_CPU=${_IMAGE_CPU}'
+  - 'IMAGE_GPU=${_IMAGE_GPU}'
   id: 'check_env_variables'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
   waitFor: ['copy_files']
@@ -51,7 +53,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest . ; fi'
+    - 'if [ ${_BUILD} == "true" ]; then docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest --build-arg IMAGE=${_IMAGE_CPU} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE}:latest . ; fi'
   id: 'build_docker_image'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE}'
   waitFor: ['restore_cache_from_container_registry']
@@ -87,6 +89,8 @@ steps:
   waitFor: ['check_tag_image_exist_container_registry']
 
 substitutions:
+    _IMAGE_CPU: base-cu101:m49
+    _IMAGE_GPU: base-cu101:m48
     _TAG: dev
     _DOCKERFILE: derived-pytorch-cpu
     _BUILD: none
