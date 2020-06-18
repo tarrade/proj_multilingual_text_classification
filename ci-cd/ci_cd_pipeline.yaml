@@ -163,7 +163,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:${_TAG_TRAINING}${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest --build-arg IMAGE=gcr.io/$PROJECT_ID/${_DOCKERFILE_BASE}_cpu:${_TAG} --build-arg PROJECT=$PROJECT_ID --build-arg ENTRYPOINT=${_ENTRYPOINT} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest .'
+    - 'docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:${_TAG_TRAINING}${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest --build-arg IMAGE=${_DOCKERFILE_BASE}_cpu:${_TAG} --build-arg PROJECT=$PROJECT_ID --build-arg ENTRYPOINT=${_ENTRYPOINT} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest .'
   id: 'build_docker_image_training_cpu'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE_TRAINING}'
   waitFor: ['restore_cache_from_container_registry_training_cpu']
