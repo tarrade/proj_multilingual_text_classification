@@ -7,10 +7,7 @@ steps:
   - 'https://github.com/tarrade/proj_multilingual_text_classification'
   id: 'clone_github'
 
-
 # python linter script
-
-# test unit
 
 
 # Set and print env variables for its execution
@@ -260,6 +257,10 @@ steps:
     - 'docker images'
   id: 'check_size_all_images'
   waitFor: ['check_tag_image_exist_container_registry_training_cpu','check_tag_image_exist_container_registry_training_gpu']
+
+# test unit
+
+# run full training on 2 events
 
 substitutions:
     _IMAGE_CPU: tf2-cpu:m49
