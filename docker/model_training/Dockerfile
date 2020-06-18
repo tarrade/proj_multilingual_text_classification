@@ -30,6 +30,11 @@ SHELL ["conda", "run", "-n", "env_multilingual_class", "/bin/bash", "-c"]
 # check the conda env
 RUN conda info -e
 
+# copy the python code structure
+COPY src /src
+# add the code in the python path
+ENV PYTHONPATH ${PYTHONPATH}:/src
+
 # activate conda env
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
 ENTRYPOINT ["python", "-m", $ENTRYPOINT]

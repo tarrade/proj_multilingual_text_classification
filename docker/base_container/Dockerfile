@@ -23,11 +23,6 @@ RUN conda update -n base conda -y
 # create the conda env
 RUN conda env create -f environment.yaml
 
-# copy the python code structure
-COPY src /src
-# add the code in the python path
-ENV PYTHONPATH ${PYTHONPATH}:/src
-
 # activate conda
 RUN conda init bash
 RUN conda info -e
@@ -42,4 +37,3 @@ RUN conda clean -a -y
 
 # activate conda env
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
-#ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"]

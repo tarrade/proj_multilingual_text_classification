@@ -7,6 +7,24 @@ steps:
   - 'https://github.com/tarrade/proj_multilingual_text_classification'
   id: 'clone_github'
 
+# Set and print env variables for its execution
+- name: 'debian'
+  args:
+  - 'bash'
+  - 'check_env.sh'
+  env:
+  - 'PROJECT=$PROJECT_ID'
+  - 'DOCKERFILE_BASE=${_DOCKERFILE_BASE}'
+  - 'TAG=${_TAG}'
+  - 'IMAGE_CPU=${_IMAGE_CPU}'
+  - 'IMAGE_GPU=${_IMAGE_GPU}'
+  - 'BUILD_BASE=${_BUILD_BASE}'
+  - 'DOCKERFILE_TRAINING=${_DOCKERFILE_TRAINING}'
+  - 'TAG_TRAINING=${_TAG_TRAINING}'
+  - 'ENTRYPOINT=${_ENTRYPOINT}'
+  id: 'check_env_variables'
+  dir: 'proj_multilingual_text_classification/docker'
+
 ## step 1: base CPU
 # Copy configuration files
 - name: 'debian'
@@ -17,27 +35,12 @@ steps:
   - 'DOCKERFILE=${_DOCKERFILE_BASE}'
   id: 'copy_files_cpu'
 
-# Set and print env variables for its execution
-- name: 'debian'
-  args: 
-  - 'bash'
-  - 'check_env.sh'
-  env:
-  - 'PROJECT=$PROJECT_ID'
-  - 'TAG=${_TAG}'
-  - 'DOCKERFILE=${_DOCKERFILE_BASE}'
-  - 'IMAGE_CPU=${_IMAGE_CPU}'
-  - 'IMAGE_GPU=${_IMAGE_GPU}'
-  id: 'check_env_variables_cpu'
-  dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE_BASE}'
-  waitFor: ['copy_files_cpu']
-
 # Check the config of Docker
 - name: 'gcr.io/cloud-builders/docker'
   args:
   - 'info'
   id: 'check_config_docker_cpu'
-  waitFor: ['check_env_variables_cpu']
+  waitFor: ['copy_files_cpu']
 
 ## Restore cache
 - name: 'gcr.io/cloud-builders/docker'
@@ -88,27 +91,12 @@ steps:
   id: 'copy_files_gpu'
   waitFor: ['-'] # run in parallel os task 2
 
-# Set and print env variables for its execution
-- name: 'debian'
-  args:
-  - 'bash'
-  - 'check_env.sh'
-  env:
-  - 'PROJECT=$PROJECT_ID'
-  - 'TAG=${_TAG}'
-  - 'DOCKERFILE=${_DOCKERFILE_BASE}'
-  - 'IMAGE_CPU=${_IMAGE_CPU}'
-  - 'IMAGE_GPU=${_IMAGE_GPU}'
-  id: 'check_env_variables_gpu'
-  dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE_BASE}'
-  waitFor: ['copy_files_gpu']
-
 # Check the config of Docker
 - name: 'gcr.io/cloud-builders/docker'
   args:
   - 'info'
   id: 'check_config_docker_gpu'
-  waitFor: ['check_env_variables_gpu']
+  waitFor: ['copy_files_gpu']
 
 # Restore cache
 - name: 'gcr.io/cloud-builders/docker'
@@ -149,6 +137,16 @@ steps:
 # end step 2: base GPU
 
 ## step 3: entrypoint for base CPU
+# Copy configuration files
+- name: 'debian'
+  args:
+  - 'bash'
+  - 'proj_multilingual_text_classification/docker/copy_files.sh'
+  env:
+  - 'DOCKERFILE=${_DOCKERFILE_TRAINING}'
+  id: 'copy_files_training_cpu'
+  waitFor: ['check_tag_image_exist_container_registry_cpu']
+
 # Restore cache
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
@@ -156,14 +154,14 @@ steps:
     - '-c'
     - 'docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest || exit 0'
   id: 'restore_cache_from_container_registry_training_cpu'
-  waitFor: ['check_tag_image_exist_container_registry_cpu']
+  waitFor: ['copy_files_training_cpu']
 
 # Build docker image with the tag
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:${_TAG_TRAINING}${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest --build-arg IMAGE=${_DOCKERFILE_BASE}_cpu:${_TAG} --build-arg PROJECT=$PROJECT_ID --build-arg ENTRYPOINT=${_ENTRYPOINT} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest .'
+    - 'docker build -t gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:${_TAG_TRAINING}_${_TAG} -t gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest --build-arg IMAGE=${_DOCKERFILE_BASE}_cpu:${_TAG} --build-arg PROJECT=$PROJECT_ID --build-arg ENTRYPOINT=${_ENTRYPOINT} --cache-from gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest .'
   id: 'build_docker_image_training_cpu'
   dir: 'proj_multilingual_text_classification/docker/${_DOCKERFILE_TRAINING}'
   waitFor: ['restore_cache_from_container_registry_training_cpu']
