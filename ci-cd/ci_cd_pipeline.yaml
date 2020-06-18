@@ -154,7 +154,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest'
+    - 'docker pull gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu:latest || exit 0'
   id: 'restore_cache_from_container_registry_training_cpu'
   waitFor: ['check_tag_image_exist_container_registry_cpu']
 
