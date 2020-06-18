@@ -256,8 +256,8 @@ steps:
   waitFor: ['check_tag_image_exist_container_registry_training_cpu','check_tag_image_exist_container_registry_training_gpu']
 
 substitutions:
-    _IMAGE_CPU: base-cu101:m49
-    _IMAGE_GPU: base-cu101:m48
+    _IMAGE_CPU: gcr.io/deeplearning-platform-release/tf2-cpu:m49
+    _IMAGE_GPU: gcr.io/deeplearning-platform-release/tf2-gpu:m49
     _TAG: dev
     _DOCKERFILE_BASE: base_container
     _DOCKERFILE_TRAINING: model_training
