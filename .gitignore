@@ -15,3 +15,4 @@ err
 out
 src/dist/
 test-docker/
+test-hp-training/
