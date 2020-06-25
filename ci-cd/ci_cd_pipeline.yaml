@@ -194,7 +194,7 @@ steps:
   entrypoint: 'bash'
   args:
     - '-c'
-    - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG_TRAINING}${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
+    - 'tag=$(gcloud container images list-tags --filter="tags:${_TAG_TRAINING}_${_TAG}" --format=json gcr.io/$PROJECT_ID/${_DOCKERFILE_TRAINING}_cpu); echo $tag; if [ "$tag" == [] ]; then echo "no tag!"; exit 1; else echo "the tag exist" ; fi'
   id: 'check_tag_image_exist_container_registry_training_cpu'
   waitFor: ['push_image_container_registry_training_cpu']
 ## end step 4: entrypoint for base CPU

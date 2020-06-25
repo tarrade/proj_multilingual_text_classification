@@ -46,8 +46,7 @@ def get_args():
         default='INFO')
     args, _ = parser.parse_known_args()
     return args
- 
- 
+
 class HP_Metric(tf.keras.callbacks.Callback):
   def __init__(self, name_metric):
     self.name_metric = name_metric
@@ -102,6 +101,13 @@ def train_and_evaluate(args):
  
     # Setup TensorBoard callback.
     hpt_cb = HP_Metric(os.environ['CLOUD_ML_HP_METRIC_TAG'])
+
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=args.job_dir,
+                                                          histogram_freq=1,
+                                                          embeddings_freq=1,
+                                                          write_graph=True,
+                                                          update_freq='batch',
+                                                          profile_batch='10, 20')
  
     # Train model
     keras_model.fit(
@@ -111,6 +117,7 @@ def train_and_evaluate(args):
         validation_data=validation_dataset,
         validation_steps=1,
         verbose=1,
+        # callbacks=[lr_decay_cb, hpt_cb, tensorboard_callback ])
         callbacks=[lr_decay_cb, hpt_cb])
  
     export_path = os.path.join(args.job_dir, 'keras_export')

@@ -66,8 +66,8 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     dataset = dataset.shuffle(shuffle_buffer)
     dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(batch_size)
-    dataset = dataset.cache()
-    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    #dataset = dataset.cache()
+    #dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     return dataset
 
     # standard 4 -> issue: flat  accuracy and loss
@@ -162,10 +162,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     activate_tensorboard = True
     activate_hp_tensorboard = False  # True
     activate_lr = False
-    save_checkpoints = True
-    save_history_per_step = True
-    save_metadata = True
-    activate_timing = True
+    save_checkpoints = False  # True
+    save_history_per_step = False  # True
+    save_metadata = False  # True
+    activate_timing = False  # True
     # drop official method that is not working
     activate_tf_summary_hp = True  # False
     # hardcoded way of doing hp
@@ -277,9 +277,10 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
     # print execution time
     elapsed_time_secs = time.time() - start_time
     logging.info('\nexecution time: {}'.format(timedelta(seconds=round(elapsed_time_secs))))
-    logging.info('timing per epoch:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))), timing.timing_epoch))))
-    logging.info('timing per validation:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))), timing.timing_valid))))
-    logging.info('sum timing over all epochs:\n{}'.format(timedelta(seconds=round(sum(timing.timing_epoch)))))
+    if activate_timing:
+        logging.info('timing per epoch:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))), timing.timing_epoch))))
+        logging.info('timing per validation:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))), timing.timing_valid))))
+        logging.info('sum timing over all epochs:\n{}'.format(timedelta(seconds=round(sum(timing.timing_epoch)))))
 
     # for hp parameter tuning in TensorBoard
     if FLAGS.is_hyperparameter_tuning:
@@ -295,7 +296,8 @@ def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validatio
         else:
             # should be extracted from /var/hypertune/output.metric
             logging.info('standard hyperparameter tuning!')
-            value_accuracy = histories_per_step.accuracies[-1]
+            # is this needed ?
+            # value_accuracy = histories_per_step.accuracies[-1]
 
         # look at the content of the file
         path_metric = '/var/hypertune/output.metric'

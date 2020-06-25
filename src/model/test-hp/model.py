@@ -34,6 +34,7 @@ def input_fn(features, labels, shuffle, num_epochs, batch_size):
     # epochs from blending together.
     dataset = dataset.repeat(num_epochs)
     dataset = dataset.batch(batch_size)
+    dataset = dataset.cache()
     return dataset
  
 def create_keras_model(input_dim, learning_rate):

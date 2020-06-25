@@ -299,7 +299,6 @@ class HP_metric(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         tf.summary.scalar(self.name_metric, logs.get('accuracy'), step=epoch)
-        # tf.summary.scalar("metric_accuracy_train_epoch_1", logs.get('accuracy'), step=epoch)
         print('{} : {} epoch {} \n'.format(self.name_metric, logs.get('accuracy'), epoch))
         return
 
