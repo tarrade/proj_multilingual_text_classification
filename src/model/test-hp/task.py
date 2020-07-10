@@ -98,17 +98,23 @@ def train_and_evaluate(args):
     lr_decay_cb = tf.keras.callbacks.LearningRateScheduler(
         lambda epoch: args.learning_rate + 0.02 * (0.5 ** (1 + epoch)),
         verbose=True)
- 
-    # Setup TensorBoard callback.
-    hpt_cb = HP_Metric(os.environ['CLOUD_ML_HP_METRIC_TAG'])
 
+    ################################################################
+    # Fabien
+    hpt_cb = HP_Metric(os.environ['CLOUD_ML_HP_METRIC_TAG'])
+    callback_custom = [lr_decay_cb, hpt_cb]
+
+    # Setup TensorBoard callback.
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=args.job_dir,
                                                           histogram_freq=1,
                                                           embeddings_freq=1,
                                                           write_graph=True,
                                                           update_freq='batch',
                                                           profile_batch='10, 20')
- 
+    callback_custom.append(tensorboard_callback)
+    print('List callback:', callback_custom)
+    ################################################################
+
     # Train model
     keras_model.fit(
         training_dataset,
@@ -117,8 +123,9 @@ def train_and_evaluate(args):
         validation_data=validation_dataset,
         validation_steps=1,
         verbose=1,
-        # callbacks=[lr_decay_cb, hpt_cb, tensorboard_callback ])
-        callbacks=[lr_decay_cb, hpt_cb])
+        # Fabien
+        callbacks=callback_custom)
+        #callbacks=[lr_decay_cb, hpt_cb])
  
     export_path = os.path.join(args.job_dir, 'keras_export')
     tf.keras.models.save_model(keras_model, export_path)
