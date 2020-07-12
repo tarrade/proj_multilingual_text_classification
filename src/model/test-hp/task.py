@@ -50,10 +50,12 @@ def get_args():
 class HP_Metric(tf.keras.callbacks.Callback):
   def __init__(self, name_metric):
     self.name_metric = name_metric
- 
-  def on_epoch_end(self, epoch, logs={}):
-    tf.summary.scalar(self.name_metric, logs.get('accuracy'), step=epoch)
-    print('{} : {} epoch {} \n'.format(self.name_metric, logs.get('accuracy'), epoch))
+
+  #def on_epoch_end(self, epoch, logs={}):
+  def on_batch_end(self, batch, logs={}):
+    tf.summary.scalar(self.name_metric, logs.get('accuracy'), step=batch)
+    print('YESSSSS')
+    print('{} : {} epoch {} \n'.format(self.name_metric, logs.get('accuracy'), batch))
     return
  
  
@@ -113,6 +115,9 @@ def train_and_evaluate(args):
                                                           profile_batch='10, 20')
     callback_custom.append(tensorboard_callback)
     print('List callback:', callback_custom)
+    print('Steps:', int(num_train_examples / args.batch_size))
+    print('Batch:',args.batch_size)
+    print('Num:',num_train_examples)
     ################################################################
 
     # Train model
@@ -134,5 +139,6 @@ def train_and_evaluate(args):
  
 if __name__ == '__main__':
     args = get_args()
+    print('argument:',args)
     tf.compat.v1.logging.set_verbosity(args.verbosity)
     train_and_evaluate(args)

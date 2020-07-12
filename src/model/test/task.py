@@ -44,11 +44,11 @@ def main(argv):
     # logging.get_absl_handler().python_handler.stream = sys.stdout
 
     # Instantiates a client
-    #client = google.cloud.logging.Client()
+    client = google.cloud.logging.Client()
 
     # Connects the logger to the root logging handler; by default this captures
     # all logs at INFO level and higher
-    #client.setup_logging()
+    client.setup_logging()
 
     fmt = "[%(levelname)s %(asctime)s %(filename)s:%(lineno)s] %(message)s"
     formatter = logger.Formatter(fmt)
