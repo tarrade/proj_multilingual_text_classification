@@ -43,6 +43,14 @@ def main(argv):
 
     # logging.get_absl_handler().python_handler.stream = sys.stdout
 
+    # test cloud storage python lib
+    from google.cloud import storage
+    storage_client = storage.Client()
+    buckets = storage_client.list_buckets()
+    print('GCP Buckets:', buckets)
+    for bucket in buckets:
+        print('items:', bucket.name)
+
     # Instantiates a client
     client = google.cloud.logging.Client()
 

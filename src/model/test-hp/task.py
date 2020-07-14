@@ -47,17 +47,25 @@ def get_args():
     args, _ = parser.parse_known_args()
     return args
 
+#class HP_Metric(tf.keras.callbacks.Callback):
+#  def __init__(self, name_metric):
+#    self.name_metric = name_metric
+#
+#  def on_batch_end(self, batch, logs={}):
+#    tf.summary.scalar(self.name_metric, logs.get('accuracy'), step=batch)
+#    print('\nBATCH\n')
+#    print('!!!!{} : {} batch {} \n'.format(self.name_metric, logs.get('accuracy'), batch))
+#    return
+
 class HP_Metric(tf.keras.callbacks.Callback):
   def __init__(self, name_metric):
     self.name_metric = name_metric
 
-  #def on_epoch_end(self, epoch, logs={}):
-  def on_batch_end(self, batch, logs={}):
-    tf.summary.scalar(self.name_metric, logs.get('accuracy'), step=batch)
-    print('YESSSSS')
-    print('{} : {} epoch {} \n'.format(self.name_metric, logs.get('accuracy'), batch))
+  def on_epoch_end(self, epoch, logs={}):
+    tf.summary.scalar(self.name_metric, logs.get('accuracy'), step=epoch)
+    print('\nEPOCH\n')
+    print('!!!!{} : {} epoch {} \n'.format(self.name_metric, logs.get('accuracy'), epoch))
     return
- 
  
 def train_and_evaluate(args):
     """Trains and evaluates the Keras model.
@@ -106,6 +114,7 @@ def train_and_evaluate(args):
     hpt_cb = HP_Metric(os.environ['CLOUD_ML_HP_METRIC_TAG'])
     callback_custom = [lr_decay_cb, hpt_cb]
 
+
     # Setup TensorBoard callback.
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=args.job_dir,
                                                           histogram_freq=1,
@@ -113,6 +122,7 @@ def train_and_evaluate(args):
                                                           write_graph=True,
                                                           update_freq='batch',
                                                           profile_batch='10, 20')
+
     callback_custom.append(tensorboard_callback)
     print('List callback:', callback_custom)
     print('Steps:', int(num_train_examples / args.batch_size))
