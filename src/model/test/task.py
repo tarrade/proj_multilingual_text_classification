@@ -133,7 +133,7 @@ def main(argv):
     logging.warning(' 6 logging-test-warning')
     logging.error(' 7 logging test-error')
     print(' 8 print --- ')
-    _ = BertTokenizer.from_pretrained('bert-base-uncased')
+    #_ = BertTokenizer.from_pretrained('bert-base-uncased')
     print(' 9 print --- ')
     _ = tf.distribute.MirroredStrategy()
     print('10 print --- ')
