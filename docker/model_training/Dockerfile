@@ -27,7 +27,6 @@ RUN apt-get update
 RUN apt-get install htop
 RUN apt-get -y install net-tools
 RUN apt-get -y install iputils-ping
-RUN apt-get -y install nano
 RUN apt-get -y install iptables
 RUN add-apt-repository ppa:git-core/ppa
 RUN apt-get -y install git
