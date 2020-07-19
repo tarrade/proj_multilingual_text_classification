@@ -80,7 +80,7 @@ def main(argv):
     import tensorflow as tf  # need to be here to have the env variables defined
     tf.get_logger().propagate = False
 
-    # masking eror related to cache
+    # masking error related to cache
     logger.getLogger('googleapiclient.discovery_cache').setLevel(logger.ERROR)
 
     # set level of verbosity
