@@ -33,15 +33,18 @@ dependencies:
 - psutil=5.6.7
 - pympler=0.8 #conda-forge
 - watermark=2.0.2 #conda-forge
-- pylint=2.4.4
+- pylint=2.5.3
 - pytest=5.3.5
 - autopep8=1.4.4
 - flake8=3.8.2
 - pep8=1.7.1
 - pylama=7.7.1 #conda-forge
 # gcp client libraries [check beam-sdk for gcp dependency] https://beam.apache.org/documentation/sdks/python-dependencies/
-- google-cloud-storage=1.26.0 #conda-forge #apache-beam[gcp]==2.18.0
+- google-cloud-storage=1.28.1 #conda-forge #apache-beam[gcp]==2.18.0
 - google-cloud-bigquery=1.24.0 #conda-forge #apache-beam[gcp]==2.18.0
+# force dependcy because of vulnaribility
+- httplib2=0.18.1
+- rsa=4.6
 - pip:
   # vulnaribility
   - safety==1.9.0
