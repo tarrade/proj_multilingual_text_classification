@@ -123,7 +123,7 @@ def train_and_evaluate(args):
                                                           update_freq='batch',
                                                           profile_batch='10, 20')
 
-    callback_custom.append(tensorboard_callback)
+    #callback_custom.append(tensorboard_callback)
     print('List callback:', callback_custom)
     print('Steps:', int(num_train_examples / args.batch_size))
     print('Batch:',args.batch_size)

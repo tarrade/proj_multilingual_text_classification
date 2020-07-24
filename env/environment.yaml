@@ -43,6 +43,8 @@ dependencies:
 - google-cloud-storage=1.26.0 #conda-forge #apache-beam[gcp]==2.18.0
 - google-cloud-bigquery=1.24.0 #conda-forge #apache-beam[gcp]==2.18.0
 - pip:
+  # vulnaribility
+  - safety==1.9.0
   # tpu
   - cloud-tpu-client==0.8
   # data processing
