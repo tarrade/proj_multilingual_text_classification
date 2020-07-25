@@ -51,7 +51,7 @@ jobs:
         mypy src || FAILURE=true
     - name: Bandit
       run: |
-        bandit -lll -r src --format custom
+        bandit -lll -r -n 5 -v -d src
     - name: Lint and other checks
       run: |
         #!/bin/bash
