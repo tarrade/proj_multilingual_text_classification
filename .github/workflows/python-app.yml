@@ -63,7 +63,7 @@ jobs:
         pylint src || FAILURE=true
         
         echo "pycodestyle"
-        pycodestyle src --max-line-length=120 --ignore=E203,W503 || FAILURE=true
+        pycodestyle src --max-line-length=160 --ignore=E203,W503 --statistics || FAILURE=true
         
         echo "pydocstyle"
         pydocstyle src --convention=numpy --add-ignore=D102,D103,D104,D105,D200,D205,D400 || FAILURE=true
