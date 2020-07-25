@@ -45,16 +45,16 @@ jobs:
         pylint src || FAILURE=true
         
         echo "pycodestyle"
-        pycodestyle src || FAILURE=true
+        pycodestyle src --max-line-length = 120 --ignore = E203,W503 || FAILURE=true
         
         echo "pydocstyle"
-        pydocstyle src || FAILURE=true
+        pydocstyle src --convention = numpy --add-ignore = D102,D103,D104,D105,D200,D205,D400 || FAILURE=true
         
         echo "mypy"
-        mypy src || FAILURE=true
+        mypy src --ignore_missing_imports = True || FAILURE=true
         
         echo "bandit"
-        bandit -ll -r {src} || FAILURE=true
+        bandit -ll -r src || FAILURE=true
         
         if [ "$FAILURE" = true ]; then
           echo "Linting failed"
