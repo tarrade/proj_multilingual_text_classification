@@ -31,6 +31,24 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --ignore E501
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --ignore E501
+    - name: Safety
+      run: |
+        safety check
+    - name: Pylint
+      run: |
+        pylint src
+    - name: Pycodestyle
+      run: |
+        pycodestyle src --max-line-length=120 --ignore=E203,W503
+    - name: Pydocstyle
+      run: |
+        pydocstyle src --convention=numpy --add-ignore=D102,D103,D104,D105,D200,D205,D400
+    - name: Mypy
+      run: |
+        mypy src 
+    - name: Bandit
+      run: |
+        bandit -ll -r src   
     - name: Lint and other checks
       run: |
         #!/bin/bash
