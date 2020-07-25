@@ -39,7 +39,7 @@ jobs:
         pylint src --exit-zero
     - name: Pycodestyle
       run: |
-        pycodestyle src --max-line-length=160 --ignore=E203,W503 --statistics
+        pycodestyle src --max-line-length=400 --ignore=E203,W503 --statistics --count 
     - name: Pydocstyle
       run: |
         pydocstyle src --convention=numpy --add-ignore=D102,D103,D104,D105,D200,D205,D400
