@@ -39,7 +39,29 @@ jobs:
         FAILURE=false
         
         echo "safety"
-        safety check || FAILURE=true  
+        safety check || FAILURE=true
+       
+        echo "pylint"
+        pylint src || FAILURE=true
+        
+        echo "pycodestyle"
+        pycodestyle src || FAILURE=true
+        
+        echo "pydocstyle"
+        pydocstyle src || FAILURE=true
+        
+        echo "mypy"
+        mypy src || FAILURE=true
+        
+        echo "bandit"
+        bandit -ll -r {src} || FAILURE=true
+        
+        if [ "$FAILURE" = true ]; then
+          echo "Linting failed"
+          exit 1
+        fi
+        echo "Linting passed"
+        exit 0
         
     - name: Test with pytest
       run: |
