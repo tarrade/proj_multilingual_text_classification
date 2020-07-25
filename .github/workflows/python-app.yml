@@ -51,7 +51,7 @@ jobs:
         pydocstyle src --convention=numpy --add-ignore=D102,D103,D104,D105,D200,D205,D400 || FAILURE=true
         
         echo "mypy"
-        mypy src --ignore_missing_imports=True || FAILURE=true
+        mypy src || FAILURE=true
         
         echo "bandit"
         bandit -ll -r src || FAILURE=true
