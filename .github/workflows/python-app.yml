@@ -40,10 +40,11 @@ jobs:
     - name: Pycodestyle
       run: |
         FAILURE=false
-        pycodestyle src --max-line-length=400 --ignore=E203,W503 --statistics --count || FAILURE=true
+        pycodestyle src --max-line-length=130 --ignore=E203,W503 --statistics --count || FAILURE=true
     - name: Pydocstyle
       run: |
-        pydocstyle src --convention=numpy --add-ignore=D102,D103,D104,D105,D200,D205,D400
+        FAILURE=false
+        pydocstyle src --convention=numpy --add-ignore=D102,D103,D104,D105,D200,D205,D400 || FAILURE=true
     - name: Mypy
       run: |
         mypy src 
