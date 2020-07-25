@@ -51,7 +51,7 @@ jobs:
         mypy src || FAILURE=true
     - name: Bandit
       run: |
-        bandit -lll -r -n 5  src
+        bandit -lll -r -n 5  src --format custom --msg-template "{relpath:20.20s}: {line:03}: {test_id:^8}: DEFECT: {msg:>20}"
     - name: Lint and other checks
       run: |
         #!/bin/bash
