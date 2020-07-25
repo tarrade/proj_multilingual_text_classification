@@ -75,7 +75,7 @@ jobs:
         mypy src --show-error-codes || FAILURE=true
         
         echo "bandit"
-        bandit -ll -r src || FAILURE=true
+        bandit -lll -r src || FAILURE=true
         
         if [ "$FAILURE" = true ]; then
           echo "Linting failed"
