@@ -40,15 +40,15 @@ jobs:
     - name: Pycodestyle
       run: |
         FAILURE=false
-        pycodestyle src --max-line-length=130 --ignore=E203,W503 --statistics --count || FAILURE=true
+        pycodestyle src --max-line-length=200 --ignore=E203,W503 --statistics --count || FAILURE=true
     - name: Pydocstyle
       run: |
         FAILURE=false
-        pydocstyle src --convention=numpy --add-ignore=D102,D103,D104,D105,D200,D205,D400 || FAILURE=true
+        pydocstyle src --convention=numpy --add-ignore=D102,D103,D104,D105,D200,D205,D400 --count || FAILURE=true
     - name: Mypy
       run: |
         FAILURE=false 
-        mypy src || FAILURE=true
+        mypy src --ignore-missing-imports || FAILURE=true
     - name: Bandit
       run: |
         bandit -lll -r -n 5  src
