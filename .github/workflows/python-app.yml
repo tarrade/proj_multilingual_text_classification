@@ -51,7 +51,10 @@ jobs:
         mypy src || FAILURE=true
     - name: Bandit
       run: |
-        bandit -lll -r -n 5  src --format custom --msg-template "{relpath:20.20s}: {line:03}: {test_id:^8}: DEFECT: {msg:>20}"
+        bandit -lll -r -n 5  src
+    - name: Bandit all
+      run: |
+        bandit -l -r -n 5  src || FAILURE=true
     - name: Lint and other checks
       run: |
         #!/bin/bash
@@ -75,7 +78,7 @@ jobs:
         mypy src --show-error-codes || FAILURE=true
         
         echo "bandit"
-        bandit -lll -r -n 5 -v -d src  || FAILURE=true
+        bandit -lll -r src  || FAILURE=true
         
         if [ "$FAILURE" = true ]; then
           echo "Linting failed"
