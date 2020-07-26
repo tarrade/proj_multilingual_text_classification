@@ -1,13 +1,10 @@
 """Defines a Keras model and input function for training."""
- 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
- 
 import tensorflow as tf
-import hypertune
- 
- 
+
+
 def input_fn(features, labels, shuffle, num_epochs, batch_size):
     """Generates an input function to be used for model training.
     Args:
@@ -26,17 +23,18 @@ def input_fn(features, labels, shuffle, num_epochs, batch_size):
     else:
         inputs = (features, labels)
     dataset = tf.data.Dataset.from_tensor_slices(inputs)
- 
+
     if shuffle:
         dataset = dataset.shuffle(buffer_size=len(features))
- 
+
     # We call repeat after shuffling, rather than before, to prevent separate
     # epochs from blending together.
     dataset = dataset.repeat(num_epochs)
     dataset = dataset.batch(batch_size)
     dataset = dataset.cache()
     return dataset
- 
+
+
 def create_keras_model(input_dim, learning_rate):
     """Creates Keras Model for Binary Classification.
     The single output node + Sigmoid activation makes this a Logistic
@@ -57,11 +55,11 @@ def create_keras_model(input_dim, learning_rate):
             Dense(25, activation=tf.nn.relu),
             Dense(1, activation=tf.nn.sigmoid)
         ])
- 
+
     # Custom Optimizer:
     # https://www.tensorflow.org/api_docs/python/tf/train/RMSPropOptimizer
     optimizer = tf.keras.optimizers.RMSprop(lr=learning_rate)
- 
+
     # Compile Keras model
     model.compile(
         loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])

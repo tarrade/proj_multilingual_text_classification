@@ -156,7 +156,9 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
     """
     Callback class to modify the default learning rate scheduler to operate each specified number of batches
 
-    Explanation: The batch counter gets reset each epoch which means that a default counter needs to be implemented that counts onwards. If self.k gets updated after each batch, the learning rate after the third batch will have already been decreased the third time which is not what we want. Therefore, we added another counter k that does not influence the learning rate scheduler.
+    Explanation: The batch counter gets reset each epoch which means that a default counter needs to be implemented that counts onwards.
+    If self.k gets updated after each batch, the learning rate after the third batch will have already been decreased the third time which
+    is not what we want. Therefore, we added another counter k that does not influence the learning rate scheduler.
     N is defined in model.py and specifies the number of batches after which the learning rate gets updated.
     """
     def __init__(self, schedule, N, verbose=0):

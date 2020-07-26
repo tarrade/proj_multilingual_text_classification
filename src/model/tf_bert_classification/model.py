@@ -66,8 +66,8 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     dataset = dataset.shuffle(shuffle_buffer)
     dataset = dataset.map(pp.parse_tfrecord_glue_files, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(batch_size)
-    #dataset = dataset.cache()
-    #dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    # dataset = dataset.cache()
+    # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     return dataset
 
     # standard 4 -> issue: flat  accuracy and loss
@@ -104,7 +104,13 @@ def build_dataset(input_tfrecords, batch_size, shuffle_buffer=2048):
     # )
 
 
-def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_rate, epsilon):
+def create_model(
+    pretrained_weights,
+    pretrained_model_dir,
+    num_labels,
+    learning_rate,
+    epsilon,
+):
     """
     Creates Keras Model for BERT Classification.
     Args:
@@ -142,7 +148,22 @@ def create_model(pretrained_weights, pretrained_model_dir, num_labels, learning_
     return model
 
 
-def train_and_evaluate(model, num_epochs, steps_per_epoch, train_data, validation_steps, eval_data, output_dir, n_steps_history, FLAGS, decay_type, learning_rate=3e-5, s=1, n_batch_decay=1, metric_accuracy='metric'):
+def train_and_evaluate(
+    model,
+    num_epochs,
+    steps_per_epoch,
+    train_data,
+    validation_steps,
+    eval_data,
+    output_dir,
+    n_steps_history,
+    FLAGS,
+    decay_type,
+    learning_rate=3e-5,
+    s=1,
+    n_batch_decay=1,
+    metric_accuracy='metric',
+):
     """
     Compiles keras model and loads data into it for training.
     """

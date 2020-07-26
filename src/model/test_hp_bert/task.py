@@ -71,9 +71,10 @@ flags.mark_flag_as_required('pretrained_model_dir')
 
 # setup env variable for Tensorflow training before importing Tensorflow
 json_data = pkgutil.get_data('utils', 'env_variables.json')
-env_var = json.loads(json_data.decode('utf-8'))
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(env_var['TF_CPP_MIN_LOG_LEVEL'])
-os.environ['TF_CPP_MIN_VLOG_LEVEL'] = str(env_var['TF_CPP_MIN_VLOG_LEVEL'])
+if json_data is not None:
+    env_var = json.loads(json_data.decode('utf-8'))
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(env_var['TF_CPP_MIN_LOG_LEVEL'])
+    os.environ['TF_CPP_MIN_VLOG_LEVEL'] = str(env_var['TF_CPP_MIN_VLOG_LEVEL'])
 
 
 def main(argv):

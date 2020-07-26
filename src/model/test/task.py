@@ -5,7 +5,7 @@
 # 3 = INFO, WARNING, and ERROR messages are not printed
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '0'
 # os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '0'
-from transformers import BertTokenizer
+# from transformers import BertTokenizer
 import tensorflow as tf
 from absl import logging
 from absl import flags
@@ -133,7 +133,7 @@ def main(argv):
     logging.warning(' 6 logging-test-warning')
     logging.error(' 7 logging test-error')
     print(' 8 print --- ')
-    #_ = BertTokenizer.from_pretrained('bert-base-uncased')
+    # _ = BertTokenizer.from_pretrained('bert-base-uncased')
     print(' 9 print --- ')
     _ = tf.distribute.MirroredStrategy()
     print('10 print --- ')
