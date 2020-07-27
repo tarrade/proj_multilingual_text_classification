@@ -1,3 +1,8 @@
+"""
+Allow developers to more easily build and distribute Python packages that have dependencies on other packages.
+Used for AI Platform training to pass packages dependencies
+"""
+
 from setuptools import find_packages
 from setuptools import setup
 

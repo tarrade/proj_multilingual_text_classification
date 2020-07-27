@@ -1,4 +1,5 @@
 name: env_multilingual_class
+
 channels:
 - defaults
 - conda-forge
@@ -11,8 +12,9 @@ dependencies:
 - joblib=0.14.1
 - absl-py=0.9.0
 - cachetools=3.1.1
-# vulnaribility
-- safety==1.9.0
+# vulnerability
+- safety=1.9.0 # conda-forge
+- bandit=1.6.2 # conda-forge
 # data processing
 - numpy=1.18.1
 - pandas=1.0.1
@@ -41,9 +43,12 @@ dependencies:
 - pylint=2.5.3
 - pytest=5.3.5
 - autopep8=1.4.4
-- flake8=3.8.2
+- flake8=3.8.3
 - pep8=1.7.1
 - pylama=7.7.1 # conda-forge
+- mypy=0.782
+- pycodestyle=2.6.0
+- pydocstyle=5.0.2
 # gcp client libraries [check beam-sdk for gcp dependency] https://beam.apache.org/documentation/sdks/python-dependencies/
 - google-cloud-storage=1.28.1 # conda-forge # apache-beam[gcp]==2.22.0
 - google-cloud-bigquery=1.24.0 # conda-forge # apache-beam[gcp]==2.22.0

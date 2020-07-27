@@ -1,9 +1,19 @@
-# from collections import Counter
-# import operator
+"""
+Module contains helper functions to extract data.
+Authors: Fabien Tarrade
+"""
 import google.cloud.bigquery as bigquery
 
-
 def create_queries(eval_size):
+    """
+    Args:
+        eval_size (int): size of the dataset
+
+    Returns:
+        string: train_query
+        string: eval_query
+
+    """
     query = """
     SELECT
       *
