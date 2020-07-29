@@ -1,3 +1,7 @@
+"""
+Module contains helper functions to train models.
+Authors: Fabien Tarrade
+"""
 from sklearn.externals import joblib
 import numpy as np
 import re
@@ -57,11 +61,19 @@ def manual_decay(epoch):
 
 def exponential_decay(lr0, s):
     """
-    Exponential decay: reduce learning rate by s every specified iteration
+    Create exponential decay: reduce learning rate by s every specified iteration.
 
-    Args:
-        lr0 = initial learning rate
-        s = decay rate, e.g. 0.9 (mostly higher than in other methods)
+    Parameters
+    ----------
+    lr0 : float
+        initial learning rate
+    s: float
+        decay rate, e.g. 0.9 (mostly higher than in other methods)
+
+    Returns
+    -------
+    exponential_decay_fn: float
+        exponential decay
     """
     def exponential_decay_fn(steps_per_epoch):
         return lr0 * 0.1**(steps_per_epoch / s)
@@ -70,12 +82,21 @@ def exponential_decay(lr0, s):
 
 def step_decay(lr0, s, epochs_drop=1.0):
     """
-    Stepwise decay: Drop learning rate by half (s) every specified iteration
+    Create stepwise decay: Drop learning rate by half (s) every specified iteration.
 
-    Args:
-        lr0 = initial learning rate
-        s = decay rate, e.g. 0.5, choose lower s than for other decays
-        epochs_drop = step size
+    Parameters
+    ----------
+    lr0 : float
+        initial learning rate
+    s: float
+        decay rate, e.g. 0.5, choose lower s than for other decays
+    epochs_drop: float
+        step size
+
+    Returns
+    -------
+    step_decay_fn: float
+        stepwise decay
     """
     # initial_lrate = 0.1
     # drop = 0.5
@@ -87,11 +108,19 @@ def step_decay(lr0, s, epochs_drop=1.0):
 
 def time_decay(lr0, s):
     """
-    Time-based decay: update the learning rate by a decreasing factor each specified iteration
+    Create time-based decay: update the learning rate by a decreasing factor each specified iteration.
 
-    Args:
-        lr0 = initial learning rate
-        s = decay rate, typically between 0.5 and 0.9
+    Parameters
+    ----------
+    lr0 : float
+        initial learning rate
+    s: float
+         decay rate, typically between 0.5 and 0.9
+
+    Returns
+    -------
+    time_decay_fn: float
+        time-based decay
     """
     def time_decay_fn(steps_per_epoch):
         return lr0 / (1 + s * steps_per_epoch)
@@ -100,7 +129,17 @@ def time_decay(lr0, s):
 
 def no_decay(lr0):
     """
-    Function that just returns the initial learning rate to ensure that it stays constant.
+    Create the initial learning rate to ensure that it stays constant.
+
+    Parameters
+    ----------
+    lr0 : float
+        learning rate
+
+    Returns
+    -------
+    no_decay_fn: float
+        learning rate
     """
     def no_decay_fn(steps_per_epoch):
         return lr0
@@ -108,8 +147,18 @@ def no_decay(lr0):
 
 
 def test_decay(lr0):
-    """"
-    Test function to investigate the effect of the decay
+    """
+    Create test function to investigate the effect of the decay.
+
+    Parameters
+    ----------
+    lr0 : float
+        learning rate
+
+    Returns
+    -------
+    test_decay_fn: float
+         learning rate
     """
     def test_decay_fn(epoch):
         # if epoch==1:
@@ -161,6 +210,7 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
     is not what we want. Therefore, we added another counter k that does not influence the learning rate scheduler.
     N is defined in model.py and specifies the number of batches after which the learning rate gets updated.
     """
+    
     def __init__(self, schedule, N, verbose=0):
         super(LearningRateSchedulerPerBatch, self).__init__(schedule, verbose)
         self.count = 0  # Global batch index (the regular batch argument refers to the batch index within the epoch)
@@ -214,6 +264,9 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
 
 
 class LR_per_step(tf.keras.callbacks.Callback):
+    """
+    Callback to provide LR per step
+    """
 
     def on_train_begin(self, logs={}):
         self.all_lr = []
@@ -253,6 +306,7 @@ class History_per_step(tf.keras.callbacks.Callback):
     """
     Callback to print validation accuracy after N epochs
     """
+
     def __init__(self, validation_data, N):
         self.validation_data = validation_data
         self.N = N
@@ -296,6 +350,7 @@ class HP_metric(tf.keras.callbacks.Callback):
     """
     Callback to print validation accuracy after N epochs
     """
+
     def __init__(self, name_metric):
         self.name_metric = name_metric
 
@@ -309,6 +364,7 @@ class TimingCallback(tf.keras.callbacks.Callback):
     """
     Class to time each epoch
     """
+
     def __init__(self, logs={}):
         self.timing_epoch = []
         self.timing_valid = []
@@ -330,6 +386,7 @@ class History_trained_model(object):
     """
     Class to save history from Keras
     """
+
     def __init__(self, history, epoch, params):
         self.history = history
         self.epoch = epoch
@@ -340,6 +397,7 @@ class History_per_steps_trained_model(object):
     """
     Class to save custom history created using callback
     """
+
     def __init__(self, steps, losses, accuracies, val_steps, val_losses, val_accuracies, all_lr, all_lr_alternative, all_lr_logs):
         self.steps = steps
         self.losses = losses
@@ -353,6 +411,19 @@ class History_per_steps_trained_model(object):
 
 
 def load_data_tensorboard(path):
+    """
+    Load data collected for TensorBoard.
+
+    Parameters
+    ----------
+    path : str
+        path to TensorBoard files
+
+    Returns
+    -------
+    data: json
+         TensorBoard data in a readable format
+    """
     event_acc = event_accumulator.EventAccumulator(path)
     event_acc.Reload()
     data = {}
@@ -370,7 +441,17 @@ def copy_local_directory_to_gcs(local_path, bucket_name, gcs_path):
     """
     Recursively copy a directory of files to GCS.
 
-    local_path should be a directory and not have a trailing slash.
+    Parameters
+    ----------
+    local_path : str
+        path to the local path. local_path should be a directory and not have a trailing slash.
+    bucket_name: str
+        name of the gcs bucket
+    gcs_path: str
+        path of the gcs
+    Returns
+    -------
+    None
     """
     assert os.path.isdir(local_path)
 
@@ -389,7 +470,19 @@ def copy_local_directory_to_gcs(local_path, bucket_name, gcs_path):
 
 def download_blob(bucket_name, blob_name, destination_file_name):
     """
-    Downloads a blob from the bucket.
+    Download a blob from the bucket.
+
+    Parameters
+    ----------
+    bucket_name : str
+        bucket's name
+    blob_name: str
+        blob's name with the following format blob/object-name
+    destination_file_name: str
+        destimation and name of the file in the following format: local/path/to/file
+    Returns
+    -------
+    None
     """
     # bucket_name = "your-bucket-name"
     # blob_name = "blob/object-name"
@@ -408,6 +501,18 @@ def download_blob(bucket_name, blob_name, destination_file_name):
 
 
 def get_trial_id():
+    """
+    Get trial from GCP env variable
+
+    Parameters
+    ----------
+    None
+
+    Returns
+    -------
+    name: str
+         prepend trial_id_ if trial_id exist
+    """
     """
     adding specific folder per trial
     """

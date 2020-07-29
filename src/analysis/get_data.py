@@ -6,13 +6,19 @@ import google.cloud.bigquery as bigquery
 
 def create_queries(eval_size):
     """
-    Args:
-        eval_size (int): size of the dataset
+    Create queries to extract a evaluation and training dataset from BigQuery table.
 
-    Returns:
-        string: train_query
-        string: eval_query
+    Parameters
+    ----------
+    eval_size : float
+        fraction of the data to the evaluation dataset
 
+    Returns
+    -------
+    eval_query: str
+        query for the evaluation dataset
+    train_query
+        query for the training dataset
     """
     query = """
     SELECT
@@ -28,6 +34,21 @@ def create_queries(eval_size):
 
 
 def create_queries_subset(eval_size):
+    """
+    Create queries to extract a evaluation and training dataset from a preprocess BigQuery table.
+
+    Parameters
+    ----------
+    eval_size : float
+        fraction of the data to the evaluation dataset
+
+    Returns
+    -------
+    eval_query: str
+        query for the evaluation dataset
+    train_query
+        query for the training dataset
+    """
     query = """
     SELECT
       *
@@ -42,6 +63,21 @@ def create_queries_subset(eval_size):
 
 
 def build_tag(row, list_tags):
+    """
+    Create list of selected tags.
+
+    Parameters
+    ----------
+    row : list
+        list of tags
+    list_tags: list
+        tags to be used
+
+    Returns
+    -------
+    new_list: list
+        list of selected tags
+    """
     new_list = []
     for idx, val in enumerate(row):
         if val in list_tags:
@@ -50,15 +86,25 @@ def build_tag(row, list_tags):
     return new_list
 
 
-def query_to_dataframe(query, is_training, tags, nb_label):
+def query_to_dataframe(query):
+    """
+    Create queries to extract a evaluation and training dataset from a preprocess BigQuery table.
 
+    Parameters
+    ----------
+    row : list
+        list of tags
+    list_tags: list
+        tags to be used
+
+    Returns
+    -------
+    new_list: list
+        list of selected tags
+    """
     client = bigquery.Client()
     df = client.query(query).to_dataframe()
-
-    # print(df['tags'])
     df['label'] = df['tags'].apply(lambda x: x[0] if len(x) > 0 else 'other-tags')
-    # print(df['label'])
-    # df['label'] = df['tags'].apply(lambda row: ",".join(row))
     del df['tags']
 
     # features
@@ -100,10 +146,25 @@ def create_dataframes(frac, eval_size, nb_label):
 
 
 def input_fn(df):
+    """
+    Create features and labels dataframes.
 
-    # features, label
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        input pandas.DataFrame
+
+    Returns
+    -------
+    features: pandas.DataFrame
+        pandas.DataFrame with features
+    label
+        pandas.DataFrame with labels
+    """
+    # extract label
     label = df['label']
     del df['label']
 
+    # extract features
     features = df['text']
     return features, label
