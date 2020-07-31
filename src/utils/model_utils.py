@@ -2,7 +2,7 @@
 Module contains helper functions to train models.
 Authors: Fabien Tarrade
 """
-from sklearn.externals import joblib
+# from sklearn.externals import joblib
 import numpy as np
 import re
 import os
@@ -210,7 +210,7 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
     is not what we want. Therefore, we added another counter k that does not influence the learning rate scheduler.
     N is defined in model.py and specifies the number of batches after which the learning rate gets updated.
     """
-    
+
     def __init__(self, schedule, N, verbose=0):
         super(LearningRateSchedulerPerBatch, self).__init__(schedule, verbose)
         self.count = 0  # Global batch index (the regular batch argument refers to the batch index within the epoch)
