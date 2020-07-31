@@ -2,7 +2,7 @@
 Module contains helper functions to train models.
 Authors: Fabien Tarrade
 """
-# from sklearn.externals import joblib
+import joblib
 import numpy as np
 import re
 import os
