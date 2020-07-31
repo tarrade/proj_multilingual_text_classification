@@ -4,6 +4,7 @@ Authors: Fabien Tarrade
 """
 import google.cloud.bigquery as bigquery
 
+
 def create_queries(eval_size):
     """
     Create queries to extract a evaluation and training dataset from BigQuery table.
@@ -79,7 +80,7 @@ def build_tag(row, list_tags):
         list of selected tags
     """
     new_list = []
-    for idx, val in enumerate(row):
+    for _, val in enumerate(row):
         if val in list_tags:
             new_list.append(val)
     del row
@@ -88,19 +89,19 @@ def build_tag(row, list_tags):
 
 def query_to_dataframe(query):
     """
-    Create queries to extract a evaluation and training dataset from a preprocess BigQuery table.
+    Create a pandas.DataFrame from a BigQuery query.
 
     Parameters
     ----------
-    row : list
-        list of tags
-    list_tags: list
-        tags to be used
+    query : str
+        BigQuery query
 
     Returns
     -------
-    new_list: list
+    keep_tags: list
         list of selected tags
+    df: pandas.DataFrame
+        pandas.DataFrame containing the result of the query
     """
     client = bigquery.Client()
     df = client.query(query).to_dataframe()
@@ -121,10 +122,26 @@ def query_to_dataframe(query):
     return keep_tags, df
 
 
-def create_dataframes(frac, eval_size, nb_label):
+def create_dataframes(frac, eval_size):
+    """
+    Create train and evaluation pandas.DataFrame.
+
+    Parameters
+    ----------
+    frac: float
+        fraction of data to use
+    eval_size:
+        size of the evaluation dataset
+    Returns
+    -------
+    train_df: pandas.DataFrame
+        pandas.DataFrame for training
+    eval_df: pandas.DataFrame
+        pandas.DataFrame for evaluation
+    """
 
     # small dataset for testing
-    if frac > 0 and frac < 1:
+    if 0 < frac < 1:
         sample = " AND RAND() < {}".format(frac)
     else:
         sample = ""
@@ -133,8 +150,8 @@ def create_dataframes(frac, eval_size, nb_label):
     train_query = "{} {}".format(train_query, sample)
     eval_query = "{} {}".format(eval_query, sample)
 
-    _, train_df = query_to_dataframe(train_query, True, '', nb_label)
-    _, eval_df = query_to_dataframe(eval_query, False, '', nb_label)
+    _, train_df = query_to_dataframe(train_query)
+    _, eval_df = query_to_dataframe(eval_query)
 
     print('size of the training set          : {:,}'.format(len(train_df)))
     print('size of the evaluation set        : {:,}'.format(len(eval_df)))

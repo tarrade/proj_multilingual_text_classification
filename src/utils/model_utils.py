@@ -2,22 +2,21 @@
 Module contains helper functions to train models.
 Authors: Fabien Tarrade
 """
-import joblib
-import numpy as np
 import re
 import os
 import json
-import tensorflow as tf
-from tensorboard.backend.event_processing import event_accumulator
-from google.cloud import storage
 from timeit import default_timer as timer
 import math
 import subprocess
 import time
 from datetime import datetime
+import tensorflow as tf
+from tensorboard.backend.event_processing import event_accumulator
+from google.cloud import storage
+import numpy as np
+import joblib
 
-
-def save_model(estimator, gcspath, name):
+def save_model(estimator, gcspath):
 
     gcspath = re.sub(r'^gs:\/\/', '', gcspath)
 
@@ -35,7 +34,9 @@ def save_model(estimator, gcspath, name):
     joblib.dump(estimator, model)
 
     # save the model
-    model_path = os.path.join('/'.join(gcspath.split('/')[1:]), datetime.datetime.now().strftime('export_%Y%m%d_%H%M%S'), model)
+    model_path = os.path.join('/'.join(gcspath.split('/')[1:]),
+                              datetime.datetime.now().strftime('export_%Y%m%d_%H%M%S'),
+                              model)
     blob = bucket.blob(model_path)
     blob.upload_from_filename(model)
 
@@ -51,7 +52,7 @@ def manual_decay(epoch):
     def manual_decay_fn():
         if epoch < 3:
             return 1e-3
-        elif epoch >= 3 and epoch < 7:
+        elif 3 <= epoch < 7:
             return 1e-4
         else:
             return 1e-5
@@ -194,7 +195,9 @@ def test_decay(lr0):
 #        tf.keras.backend.set_value(self.model.optimizer.lr, scheduled_lr)
 #        print('\nEpoch %05d: Learning rate is %6.4f.' % (batch, scheduled_lr))
 #        current_step = self.model.optimizer.iterations.numpy()
-#        current_lr = tf.summary.scalar("learning_rate", self.model.optimizer._decayed_lr(var_dtype=tf.float32), step=current_step)
+#        current_lr = tf.summary.scalar("learning_rate",
+#        self.model.optimizer._decayed_lr(var_dtype=tf.float32),
+#        step=current_step)
 #        print('tf.summary output: ', current_lr)
 ########################################################################################
 
@@ -205,10 +208,11 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
     """
     Callback class to modify the default learning rate scheduler to operate each specified number of batches
 
-    Explanation: The batch counter gets reset each epoch which means that a default counter needs to be implemented that counts onwards.
-    If self.k gets updated after each batch, the learning rate after the third batch will have already been decreased the third time which
-    is not what we want. Therefore, we added another counter k that does not influence the learning rate scheduler.
-    N is defined in model.py and specifies the number of batches after which the learning rate gets updated.
+    Explanation: The batch counter gets reset each epoch which means that a default counter needs to be
+    implemented that counts onwards. If self.k gets updated after each batch, the learning rate after the third batch
+    will have already been decreased the third time which is not what we want. Therefore, we added another counter k
+    that does not influence the learning rate scheduler. N is defined in model.py and specifies the number of batches
+    after which the learning rate gets updated.
     """
 
     def __init__(self, schedule, N, verbose=0):
@@ -226,16 +230,24 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
 
     def on_batch_begin(self, batch, logs=None):
         if self.k % self.N == 0:
-            print('\nprinting LR in schedule class (before batch_begin): {}, k: {}'.format(self.model.optimizer.lr.numpy(), self.k))
+            print('\nprinting LR in schedule class (before batch_begin): {}, k: {}'.format(
+                self.model.optimizer.lr.numpy(),
+                self.k))
             super(LearningRateSchedulerPerBatch, self).on_epoch_begin(self.count, logs)
-            print('\nprinting LR in schedule class (batch_begin): {}, k: {}'.format(self.model.optimizer.lr.numpy(), self.k))
-            # tf.keras.backend.set_value(self.model.optimizer.lr, float(tf.keras.backend.get_value(self.model.optimizer.lr)))
+            print('\nprinting LR in schedule class (batch_begin): {}, k: {}'.format(
+                self.model.optimizer.lr.numpy(),
+                self.k))
+            # tf.keras.backend.set_value(self.model.optimizer.lr,
+            # float(tf.keras.backend.get_value(self.model.optimizer.lr)))
 
     def on_batch_end(self, batch, logs=None):
         if self.k % self.N == 0:
             super(LearningRateSchedulerPerBatch, self).on_epoch_end(self.count, logs)
-            print('\nprinting LR in schedule class (batch_end): {}, k: {}'.format(self.model.optimizer.lr.numpy(), self.k))
-            # tf.keras.backend.set_value(self.model.optimizer.lr, float(tf.keras.backend.get_value(self.model.optimizer.lr)))
+            print('\nprinting LR in schedule class (batch_end): {}, k: {}'.format(
+                self.model.optimizer.lr.numpy(),
+                self.k))
+            # tf.keras.backend.set_value(self.model.optimizer.lr,
+            # float(tf.keras.backend.get_value(self.model.optimizer.lr)))
 
             self.count += 1
         self.k += 1
@@ -243,11 +255,6 @@ class LearningRateSchedulerPerBatch(tf.keras.callbacks.LearningRateScheduler):
         logs = logs or {}
         logs['lr'] = tf.keras.backend.get_value(self.model.optimizer.lr)
 
-        # current_step = self.model.optimizer.iterations.numpy()
-        # with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
-        # with tf.summary.create_file_writer(os.path.join('/home/vera_luechinger/tensorflow_model/saved_model/tensorboard')).as_default():
-        #    tf.summary.scalar("learning_rate", logs['lr'], step=current_step)
-        # print('tf.summary output: ', current_lr)
 # -------------------------------------------------------------------------------------
 
 # Callback for printing the LR at the end of each epoch.
@@ -290,7 +297,10 @@ class LR_per_step(tf.keras.callbacks.Callback):
 
         # lr_logs = logs['lr']
         # lr_logs_alt = logs.get('lr')
-        # print('\n=> begin: learning rate in the logs for batch {} is {}. alt: {}'.format(batch+1, lr_logs, lr_logs_alt))
+        # print('\n=> begin: learning rate in the logs for batch {} is {}. alt: {}'.format(
+        # batch+1,
+        # lr_logs,
+        # lr_logs_alt))
 
     def on_batch_end(self, batch, logs={}):
         print('batch end: printing logs: \n', logs)
@@ -398,7 +408,18 @@ class History_per_steps_trained_model(object):
     Class to save custom history created using callback
     """
 
-    def __init__(self, steps, losses, accuracies, val_steps, val_losses, val_accuracies, all_lr, all_lr_alternative, all_lr_logs):
+    def __init__(
+            self,
+            steps,
+            losses,
+            accuracies,
+            val_steps,
+            val_losses,
+            val_accuracies,
+            all_lr,
+            all_lr_alternative,
+            all_lr_logs
+    ):
         self.steps = steps
         self.losses = losses
         self.accuracies = accuracies
@@ -513,14 +534,11 @@ def get_trial_id():
     name: str
          prepend trial_id_ if trial_id exist
     """
-    """
-    adding specific folder per trial
-    """
     suffix = json.loads(os.environ.get("TF_CONFIG", "{}")).get("task", {}).get("trial", "")
     if suffix == '':
         return suffix
-    else:
-        return 'trial_id_' + suffix
+
+    return 'trial_id_' + suffix
 
 
 def create_module_tar_archive(model_name):
