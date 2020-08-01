@@ -1,7 +1,6 @@
 """
-Created on Wed Sep 12 2018
-
-@author: Fabien Tarrade fabien.tarrade@axa.ch
+Module contains helper functions to test models.
+Authors: Fabien Tarrade
 """
 import itertools
 import time
@@ -21,7 +20,7 @@ plt.style.use('ggplot')
 
 
 def test_model(model, name_model, X_train, y_train, X_test, y_test, details=False,
-               normalize=False, weights=None, return_model=False, lib='scikit-learn', fit_params={}):
+               normalize=False, weights=None, return_model=False, lib='scikit-learn', fit_params=None):
     """
     Function that does a detailed investigation of a given model. Confusion matrices are generated
     and various metrics are shown.
@@ -110,7 +109,9 @@ def test_model(model, name_model, X_train, y_train, X_test, y_test, details=Fals
 
     else:
         model.fit(X_train, y_train, **fit_params)
-    print('############################################# \n model: {} \n#############################################'.format(name_model))
+    print('############################################# \n '
+          'model: {} \n'
+          '#############################################'.format(name_model))
     if details and hasattr(model, 'named_steps'):
         print('the list of steps and parameters in the pipeline\n')
         for k, v in model.named_steps.items():

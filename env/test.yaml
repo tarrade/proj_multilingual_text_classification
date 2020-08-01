@@ -6,12 +6,18 @@ dependencies:
 # core packages
 - python=3.7.6
 - ipykernel=5.1.4
-- pip=20.0.2
-- nbdime=1.1.0 #conda-forge
+- pip=20.1.1
+- nbdime=1.1.0 # conda-forge
 - joblib=0.14.1
+- absl-py=0.9.0
+- cachetools=3.1.1
+# vulnerability
+- safety=1.9.0 # conda-forge
+- bandit=1.6.2 # conda-forge
 # data processing
 - numpy=1.18.1
 - pandas=1.0.1
+- pyarrow=0.16.0
 # data visualization
 - plotly=4.5.0
 - matplotlib=3.1.3 # needed for src/utils
@@ -19,44 +25,52 @@ dependencies:
 - pydot=1.4.1
 - graphviz=2.40.1
 # machine learning
-- lime=0.1.1.37 #conda-forge
-- scikit-learn=0.22.1  # needed for src/utils
+- scipy=1.4.1
+- lime=0.1.1.37 # conda-forge
+- scikit-learn=0.23.1  # needed for src/utils
 - scikit-plot=0.3.7  # needed for src/utils
+- xgboost=1.1.1  # conda-forge
 # machine learning - nlp
 - nltk=3.4.5
 - gensim=3.8.0
-- spacy=2.2.3 #conda-forge
-- langdetect=1.0.7 #conda-forge
-#- tensorflow=2.1.0 # Mac only 2.0.0
+- spacy=2.2.3  # conda-forge
+- langdetect=1.0.7  #conda-forge
 # code audit
 - psutil=5.6.7
-- pympler=0.8 #conda-forge
-- watermark=2.0.2 #conda-forge
-- pylint=2.4.4
+- pympler=0.8 # conda-forge
+- watermark=2.0.2 # conda-forge
+- pylint=2.5.3
 - pytest=5.3.5
 - autopep8=1.4.4
+- flake8=3.8.3
 - pep8=1.7.1
-- pylama=7.7.1 #conda-forge
+- pylama=7.7.1 # conda-forge
+- mypy=0.782
+- pycodestyle=2.6.0
+- pydocstyle=5.0.2
 # gcp client libraries [check beam-sdk for gcp dependency] https://beam.apache.org/documentation/sdks/python-dependencies/
-- google-cloud-storage=1.26.0 #conda-forge #apache-beam[gcp]==2.18.0
-- google-cloud-bigquery=1.24.0 #conda-forge #apache-beam[gcp]==2.18.0
+- google-cloud-storage=1.28.1 # conda-forge # apache-beam[gcp]==2.22.0
+- google-cloud-bigquery=1.24.0 # conda-forge # apache-beam[gcp]==2.22.0
+- google-cloud-logging=1.15.0
+# force dependcy because of vulnaribility
+- httplib2=0.18.1
+- rsa=4.6
 - pip:
+  # tpu
+  - cloud-tpu-client==0.8
   # data processing
-  - apache-beam[gcp]==2.18.0
+  #- apache-beam[gcp]==2.22.0 # issue with httpslib2
   # data visualization
   - facets-overview==1.0.0
   # machine learning
-  - xgboost==1.0.1
-  - tensorflow==2.2.0
-  - tensorboard_plugin_profile==2.2.0
-  - grpcio==1.24.3 # needed for Mac only ?
-  - tensorflow-hub==0.7.0
-  - tensorflow-datasets==2.1.0
-  - tensorflow-text==2.1.0rc0
+  - tensorflow==2.3.0
+  - tensorflow-hub==0.8.0
+  - tensorflow-datasets==3.1.0
+  - tensorflow-text==2.2.1
   - tensorflow-addons==0.7.1
   - cloudml-hypertune==0.1.0.dev6
   # machine learning - nlp
-  - transformers==2.8.0
+  - transformers==2.9.0
   # EN core trained on web small size(sm) (exist md:medium or ld:large)
   - "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.2.5/en_core_web_sm-2.2.5.tar.gz#egg=en_core_web_sm==2.2.5"
   # IT core trained on news small size(sm)
@@ -66,7 +80,7 @@ dependencies:
   # DE core trained on news small size(sm) (exist md:medium)
   - "https://github.com/explosion/spacy-models/releases/download/de_core_news_sm-2.2.5/de_core_news_sm-2.2.5.tar.gz#egg=de_core_news_sm==2.2.5"
   # machine learning - framework
-  - tfx==0.21.2
+  - tfx==0.22.1
   # gcp client libraries
-  - google-resumable-media==0.5.0
   - google-cloud-translate==2.0.1
+  - pipdeptree
