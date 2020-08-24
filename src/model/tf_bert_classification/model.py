@@ -214,7 +214,7 @@ def train_and_evaluate(
                 log_dir = os.path.join(log_dir, suffix)
             tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir,
                                                                   histogram_freq=1,
-                                                                  embeddings_freq=1,
+                                                                  embeddings_freq=0,
                                                                   write_graph=True,
                                                                   update_freq='batch',
                                                                   profile_batch='10, 20')
