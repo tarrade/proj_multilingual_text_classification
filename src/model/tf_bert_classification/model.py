@@ -298,6 +298,11 @@ def train_and_evaluate(
     # print execution time
     elapsed_time_secs = time.time() - start_time
     logging.info('\nexecution time: {}'.format(timedelta(seconds=round(elapsed_time_secs))))
+
+    # to be remove
+    logging.info('\ndebugging .... : ')
+    pp.print_info_data(train_data)
+
     if activate_timing:
         logging.info('timing per epoch:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))), timing.timing_epoch))))
         logging.info('timing per validation:\n{}'.format(list(map(lambda x: str(timedelta(seconds=round(x))), timing.timing_valid))))
