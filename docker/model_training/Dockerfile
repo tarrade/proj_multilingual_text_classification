@@ -44,6 +44,9 @@ COPY src /src
 # add the code in the python path
 ENV PYTHONPATH ${PYTHONPATH}:/src
 
+RUN conda info -e
+RUN conda list
+
 # activate conda env
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
 ENTRYPOINT ["python", "-m", $ENTRYPOINT]
