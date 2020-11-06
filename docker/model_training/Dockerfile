@@ -49,4 +49,5 @@ RUN conda list
 
 # activate conda env
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
-ENTRYPOINT ["python", "-m", $ENTRYPOINT]
+#ENTRYPOINT ["python", "-m", "$ENTRYPOINT"]
+ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"]
