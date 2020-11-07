@@ -1,7 +1,7 @@
 # Specify the base image and tag
 ARG IMAGE=base_container_cpu:latest
 ARG PROJECT=None
-ARG ENTRYPOINT=model.tf_bert_classification.task
+ARG PYTHONMODULE=model.tf_bert_classification.task
 
 FROM gcr.io/$PROJECT/$IMAGE
 
@@ -10,8 +10,8 @@ ARG IMAGE
 RUN echo ${IMAGE}
 ARG PROJECT
 RUN echo ${PROJECT}
-ARG ENTRYPOINT
-RUN echo ${ENTRYPOINT}
+ARG PYTHONMODULE
+RUN echo ${PYTHONMODULE}
 
 # checking that the right shell is used in the image the build and later when the container is launched from the image
 RUN echo $0
@@ -47,7 +47,11 @@ ENV PYTHONPATH ${PYTHONPATH}:/src
 RUN conda info -e
 RUN conda list
 
+ENV PYTHONMODULE ${PYTHONMODULE}
+RUN echo $PYTHONMODULE
+
 # activate conda env
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
-#ENTRYPOINT ["python", "-m", "$ENTRYPOINT"]
-ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"]
+#ENTRYPOINT ["python", "-m", "$ENTRYPOINT"] # not working
+#ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"] # hardcoded
+ENTRYPOINT "python" "-m" "$PYTHONMODULE"

@@ -1,4 +1,8 @@
 FROM gcr.io/deeplearning-platform-release/base-cu101
+ARG PYTHONMODULE=model.tf_bert_classification.task
+#model.test_log.task
+#model.test.task
+#model.tf_bert_classification.task
 
 # checking that the right shell is used in the image the build and later when the container is launched from the image
 RUN echo $0
@@ -42,8 +46,17 @@ RUN conda list -n env_multilingual_class
 #ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.tf_bert_classification.task"]
 
 # activate conda env
+#ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
+#ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"]
+
+ENV PYTHONMODULE ${PYTHONMODULE}
+RUN echo $PYTHONMODULE
+
+# activate conda env
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
-ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"]
+#ENTRYPOINT ["python", "-m", "$PYTHONMODULE"]
+ENTRYPOINT "python" "-m" "$PYTHONMODULE"
+#ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"]
 
 #ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.test.task"]
 #ENTRYPOINT ["conda", "run", "-n", "env_multilingual_class", "python", "-m", "model.tf_bert_classification.task"]
