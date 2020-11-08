@@ -54,4 +54,8 @@ RUN echo $PYTHONMODULE
 ENV PATH /opt/conda/envs/env_multilingual_class/bin:$PATH
 #ENTRYPOINT ["python", "-m", "$ENTRYPOINT"] # not working
 #ENTRYPOINT ["python", "-m", "model.tf_bert_classification.task"] # hardcoded
-ENTRYPOINT "python" "-m" "$PYTHONMODULE"
+#ENTRYPOINT "python" "-m" "$PYTHONMODULE" # not working
+
+# Create a script to pass command line args to python
+RUN echo "python -m $PYTHONMODULE \$@" > /run_module.sh
+ENTRYPOINT ["/bin/bash", "/run_module.sh"]
