@@ -292,19 +292,20 @@ def main(argv):
     # tokenizer_class = MODELS[model_index][1]  # i.e BertTokenizer
     pretrained_weights = MODELS[model_index][2]  # 'i.e bert-base-multilingual-uncased'
 
-    # download   pre trained model:
+    # download pre trained model:
     if FLAGS.pretrained_model_dir:
         # download pre trained model from a bucket
-        logging.info('downloading pretrained model!')
         search = re.search('gs://(.*?)/(.*)', FLAGS.pretrained_model_dir)
         if search is not None:
             bucket_name = search.group(1)
             blob_name = search.group(2)
             local_path = '.'
             mu.download_blob(bucket_name, blob_name, local_path)
-            pretrained_model_dir = local_path + '/' + blob_name
+            pretrained_model_dir = local_path + '/' + blob_name.split('/')[-1]
+            logging.info('downloading pretrained model from gcs and stored in {}'.format(pretrained_model_dir))
         else:
             pretrained_model_dir = FLAGS.pretrained_model_dir
+            logging.info('use pretrained model from {}'.format(pretrained_model_dir))
     else:
         # download pre trained model from internet
         pretrained_model_dir = '.'
