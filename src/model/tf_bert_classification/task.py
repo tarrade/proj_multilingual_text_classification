@@ -301,7 +301,7 @@ def main(argv):
             blob_name = search.group(2)
             local_path = '.'
             mu.download_blob(bucket_name, blob_name, local_path)
-            pretrained_model_dir = local_path + '/' + blob_name.split('/')[-1]
+            pretrained_model_dir = local_path + '/' + blob_name.split
             logging.info('downloading pretrained model from gcs and stored in {}'.format(pretrained_model_dir))
         else:
             pretrained_model_dir = FLAGS.pretrained_model_dir
