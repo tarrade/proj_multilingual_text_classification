@@ -512,8 +512,10 @@ def download_blob(bucket_name, blob_name, destination_file_name):
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
-    blobs = storage_client.list_blobs(bucket, prefix='pretrained_model/bert-base-multilingual-uncased/')
+    #blobs = storage_client.list_blobs(bucket, prefix='pretrained_model/bert-base-multilingual-uncased/')
+    blobs = storage_client.list_blobs(bucket, prefix=blob_name)
     os.makedirs(destination_file_name + '/' + blob_name, exist_ok=True)
+
     for blob in blobs:
         print(blob.name)
         blob.download_to_filename(blob.name)
