@@ -135,9 +135,17 @@ def create_model(
     logging.debug('pretrained model\'s files: \n {}'.format(glob.glob(pretrained_model_dir + "/*")))
 
     # create and compile the Keras model in the context of strategy.scope
-    model = TFBertForSequenceClassification.from_pretrained(pretrained_weights,
-                                                            num_labels=num_labels,
-                                                            cache_dir=pretrained_model_dir)
+    #model = TFBertForSequenceClassification.from_pretrained(pretrained_weights,
+    #                                                        num_labels=num_labels,
+    #                                                        cache_dir=pretrained_model_dir)
+
+    logging.info('model\'s name: {} folder\'s name {}:'.format(pretrained_weights, pretrained_model_dir))
+    if pretrained_model_dir.split('/')[-1] != pretrained_weights:
+        logging.error('Mistmatch between model\'s name and folder\'s name!')
+
+    model = TFBertForSequenceClassification.from_pretrained(pretrained_model_dir,
+                                                            num_labels=num_labels)
+
     # model.layers[-1].activation = tf.keras.activations.softmax
     model._name = 'tf_bert_classification'
 
