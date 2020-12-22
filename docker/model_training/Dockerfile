@@ -3,7 +3,8 @@ ARG IMAGE=base_container_cpu:latest
 ARG PROJECT=None
 ARG PYTHONMODULE=model.tf_bert_classification.task
 
-FROM gcr.io/$PROJECT/$IMAGE
+#FROM gcr.io/$PROJECT/$IMAGE
+FROM europe-west4-docker.pkg.dev/$PROJECT/$IMAGE
 
 # trick to have the tag after the from
 ARG IMAGE
