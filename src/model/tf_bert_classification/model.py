@@ -198,7 +198,7 @@ def train_and_evaluate(
     # drop official method that is not working
     activate_tf_summary_hp = True  # False
     # hardcoded way of doing hp
-    activate_hardcoded_hp = False  # True
+    activate_hardcoded_hp = True  # True
 
     if FLAGS.is_hyperparameter_tuning:
         # get trial ID
