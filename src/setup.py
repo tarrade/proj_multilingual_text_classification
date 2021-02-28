@@ -7,7 +7,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 REQUIRED_PACKAGES = ['transformers==2.9.0',
-                     'tensorflow==2.3.1',
+                     'tensorflow==2.4.0',
                      'cloud-tpu-client==0.8',
                      'tensorboard_plugin_profile==2.2.0',
                      'absl-py==0.9.0',
@@ -19,7 +19,7 @@ REQUIRED_PACKAGES = ['transformers==2.9.0',
                      'cloudml-hypertune==0.1.0.dev6']
 
 #REQUIRED_PACKAGES = ['transformers==2.9.0',
-#                     'tensorflow==2.3.1',
+#                     'tensorflow==2.4.0',
 #                     'cloud-tpu-client==0.8',
 #                     'tensorboard_plugin_profile==2.3.0',
 #                     'absl-py==0.9.0',
@@ -32,7 +32,7 @@ REQUIRED_PACKAGES = ['transformers==2.9.0',
 #                     'cloudml-hypertune==0.1.0.dev6']
 
 #REQUIRED_PACKAGES = ['transformers==3.0.2',
-#                     'tensorflow==2.3.1',
+#                     'tensorflow==2.4.0',
 #                     'cloud-tpu-client==0.8',
 #                     'tensorboard_plugin_profile==2.3.0',
 #                     'absl-py==0.9.0',
