@@ -266,6 +266,11 @@ def main(argv):
     else:
         logging.error('os.environ[TF_CONFIG] doesn\'t exist !')
 
+    if os.environ.get('CLUSTER_SPEC') is not None:
+        logging.info('os.environ[CLUSTER_SPEC]: {}'.format(os.environ['CLUSTER_SPEC']))
+    else:
+        logging.error('os.environ[CLUSTER_SPEC] doesn\'t exist !')
+
     if FLAGS.use_tpu:
         # Check or update the TensorFlow on the TPU cluster to match the one of the VM
         logging.info('setting up TPU: check that TensorFlow version is the same on the VM and on the TPU cluster')

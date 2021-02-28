@@ -536,7 +536,10 @@ def get_trial_id():
     name: str
          prepend trial_id_ if trial_id exist
     """
-    suffix = json.loads(os.environ.get("TF_CONFIG", "{}")).get("task", {}).get("trial", "")
+    # CAIP
+    #json.loads(os.environ.get("TF_CONFIG", "{}")).get("task", {}).get("trial", "")
+    # uCAIP
+    json.loads(os.environ.get("CLUSTER_SPEC", "{}")).get("task", {}).get("trial", "")
     if suffix == '':
         return suffix
 

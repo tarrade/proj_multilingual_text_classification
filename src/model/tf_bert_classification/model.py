@@ -343,7 +343,11 @@ def train_and_evaluate(
 
         if activate_hp_tensorboard:
             logging.info('setup TensorBoard for hyperparameter tuning!')
-            params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
+            # CAIP
+            #params = json.loads(os.environ.get("TF_CONFIG", "{}")).get("job", {}).get("hyperparameters", {}).get("params", {})
+            #uCAIP
+            params = json.loads(os.environ.get("CLUSTER_SPEC", "{}")) #.get("job", {}).get("hyperparameters", {}).get("params", {})
+            print('debug: CLUSTER_SPEC:', params)
             list_hp = []
             hparams = {}
             for el in params:
