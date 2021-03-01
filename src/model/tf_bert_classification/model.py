@@ -200,6 +200,10 @@ def train_and_evaluate(
     # hardcoded way of doing hp
     activate_hardcoded_hp = True  # True
 
+    # dependencies
+    if activate_tf_summary_hp:
+        save_history_per_step = True
+
     if FLAGS.is_hyperparameter_tuning:
         # get trial ID
         suffix = mu.get_trial_id()
