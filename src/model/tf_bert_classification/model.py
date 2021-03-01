@@ -324,10 +324,11 @@ def train_and_evaluate(
     if FLAGS.is_hyperparameter_tuning:
         logging.info('setup hyperparameter tuning!')
         # test
-        params = json.loads(os.environ.get("CLUSTER_SPEC", "{}")).get("job", {})
-        print('debug: CLUSTER_SPEC1:', params)
-        params = json.loads(os.environ.get("CLUSTER_SPEC", "{}")).get("job", {}).get("job_args", {})
-        print('debug: CLUSTER_SPEC2:', params)
+        #params = json.loads(os.environ.get("CLUSTER_SPEC", "{}")).get("job", {})
+        #print('debug: CLUSTER_SPEC1:', params)
+        #params = json.loads(os.environ.get("CLUSTER_SPEC", "{}")).get("job", {}).get("job_args", {})
+        #print('debug: CLUSTER_SPEC2:', params)
+        print('debug: printenv:', printenv)
         #
         if activate_hardcoded_hp:
             # trick to bypass ai platform bug
