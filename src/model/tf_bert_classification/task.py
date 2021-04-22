@@ -336,6 +336,13 @@ def main(argv):
     train_dataset = train_dataset.repeat(FLAGS.epochs + 1)
     valid_dataset = valid_dataset.repeat(2)
 
+    for i in train_dataset:
+        logging.info('dataset training ={}'.format(FLAGS.input_train_tfrecords))
+        logging.info('batch size training ={}'.format(FLAGS.batch_size_train))
+        logging.info('nb epoch training ={}'.format(FLAGS.epochs + 1))
+        logging.info('shape data training input_ids ={}'.format(i[0]['input_ids'].shape))
+        break
+
     # reset all variables used by Keras
     tf.keras.backend.clear_session()
 
