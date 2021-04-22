@@ -24,6 +24,7 @@ RUN printenv
 SHELL ["/bin/bash", "-c"]
 
 # Install some linux utils
+RUN curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 RUN apt-get update
 RUN apt-get install htop
 RUN apt-get -y install net-tools
