@@ -354,6 +354,11 @@ def main(argv):
                                      num_labels=FLAGS.num_classes,
                                      learning_rate=FLAGS.learning_rate,
                                      epsilon=FLAGS.epsilon)
+    logging.info('model summary ={}'.format(model.summary()))
+    logging.info('model input ={}'.format(model.inputs))
+    logging.info('model outputs ={}'.format(model.outputs))
+    
+    
     # train the model
     tf_bert.train_and_evaluate(model,
                                num_epochs=FLAGS.epochs,
