@@ -315,6 +315,9 @@ def train_and_evaluate(
     logging.info('model summary ={}'.format(model.summary()))
     logging.info('model input ={}'.format(model.inputs))
     logging.info('model outputs ={}'.format(model.outputs))
+    
+    logging.info('model signature outputs ={}'.format(model.signatures['serving_default'].structured_outputs))
+    logging.info('model inputs ={}'.format(model.signatures['serving_default'].inputs[0]))
 
     # to be remove
     logging.info('\ndebugging .... : ')
