@@ -315,9 +315,6 @@ def train_and_evaluate(
     logging.info('model summary ={}'.format(model.summary()))
     logging.info('model input ={}'.format(model.inputs))
     logging.info('model outputs ={}'.format(model.outputs))
-    
-    logging.info('model signature outputs ={}'.format(model.signatures['serving_default'].structured_outputs))
-    logging.info('model inputs ={}'.format(model.signatures['serving_default'].inputs[0]))
 
     # to be remove
     logging.info('\ndebugging .... : ')
@@ -429,6 +426,15 @@ def train_and_evaluate(
             # not saving model during hyper parameter tuning
             # savemodel_path = os.path.join(savemodel_path, suffix)
             model.save(os.path.join(savemodel_path, model.name))
+            
+            model2 = tf.keras.models.load_model(os.path.join(savemodel_path, model.name))
+            # check model
+            logging.info('model2 summary ={}'.format(model2.summary()))
+            logging.info('model2 input ={}'.format(model2.inputs))
+            logging.info('model2 outputs ={}'.format(model2.outputs))
+    
+            logging.info('model2 signature outputs ={}'.format(model2.signatures['serving_default'].structured_outputs))
+            logging.info('model2 inputs ={}'.format(model2.signatures['serving_default'].inputs[0]))
 
         if save_history_per_step:
             # save history
