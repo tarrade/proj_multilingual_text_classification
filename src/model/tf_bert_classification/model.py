@@ -310,6 +310,11 @@ def train_and_evaluate(
     # print execution time
     elapsed_time_secs = time.time() - start_time
     logging.info('\nexecution time: {}'.format(timedelta(seconds=round(elapsed_time_secs))))
+    
+    # check model
+    logging.info('model summary ={}'.format(model.summary()))
+    logging.info('model input ={}'.format(model.inputs))
+    logging.info('model outputs ={}'.format(model.outputs))
 
     # to be remove
     logging.info('\ndebugging .... : ')
