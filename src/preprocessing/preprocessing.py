@@ -300,7 +300,12 @@ def parse_tfrecord_glue_files(record):
     # tr_parse_ds = tr_ds.map(parse_example)
     example = tf.io.parse_single_example(record, features_spec)
 
-    f0 = tf.ensure_shape(tf.io.parse_tensor(example['input_ids'], out_type=tf.int32), (None,))
-    f1 = tf.ensure_shape(tf.io.parse_tensor(example['attention_mask'], out_type=tf.int32), (None,))
-    f2 = tf.ensure_shape(tf.io.parse_tensor(example['token_type_ids'], out_type=tf.int32), (None,))
+    # bad idea to use (None, ) ?
+    #f0 = tf.ensure_shape(tf.io.parse_tensor(example['input_ids'], out_type=tf.int32), (None,))
+    #f1 = tf.ensure_shape(tf.io.parse_tensor(example['attention_mask'], out_type=tf.int32), (None,))
+    #f2 = tf.ensure_shape(tf.io.parse_tensor(example['token_type_ids'], out_type=tf.int32), (None,))
+    f0 = tf.ensure_shape(tf.io.parse_tensor(example['input_ids'], out_type=tf.int32), (128,))
+    f1 = tf.ensure_shape(tf.io.parse_tensor(example['attention_mask'], out_type=tf.int32), (128,))
+    f2 = tf.ensure_shape(tf.io.parse_tensor(example['token_type_ids'], out_type=tf.int32), (128,))  
+    
     return {'input_ids': f0, 'attention_mask': f1, 'token_type_ids': f2}, example['label']
