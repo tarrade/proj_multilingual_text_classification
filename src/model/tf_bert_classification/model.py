@@ -142,12 +142,29 @@ def create_model(
     logging.info('model\'s name: {} folder\'s name {}:'.format(pretrained_weights, pretrained_model_dir))
     if pretrained_model_dir.split('/')[-1] != pretrained_weights:
         logging.error('Mistmatch between model\'s name and folder\'s name!')
+    
+    # old buggy architecture
+    #model = TFBertForSequenceClassification.from_pretrained(pretrained_model_dir,
+    #                                                        num_labels=num_labels)
+    
+    encoder =  TFBertForSequenceClassification.from_pretrained(pretrained_model_dir,
+                                                               num_labels=num_labels)
 
-    model = TFBertForSequenceClassification.from_pretrained(pretrained_model_dir,
-                                                            num_labels=num_labels)
+    max_len=128 
+    input_ids = tf.keras.Input(shape=(max_len,), dtype=tf.int32)
+    token_type_ids = tf.keras.Input(shape=(max_len,), dtype=tf.int32)
+    attention_mask = tf.keras.Input(shape=(max_len,), dtype=tf.int32)
+
+    embedding = encoder([input_ids, attention_mask])    
+    logits = embedding[0]
+
+
+    model = tf.keras.models.Model(inputs = [input_ids, attention_mask], 
+                                  outputs = logits,
+                                  name='tf_bert_classification')
 
     # model.layers[-1].activation = tf.keras.activations.softmax
-    model._name = 'tf_bert_classification'
+    #model._name = 'tf_bert_classification'
 
     # compile Keras model
     model.compile(optimizer=optimizer,
