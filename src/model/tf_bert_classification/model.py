@@ -151,15 +151,15 @@ def create_model(
                                                                num_labels=num_labels)
 
     max_len=128 
-    input_ids = tf.keras.Input(shape=(max_len,), dtype=tf.int32)
-    token_type_ids = tf.keras.Input(shape=(max_len,), dtype=tf.int32)
-    attention_mask = tf.keras.Input(shape=(max_len,), dtype=tf.int32)
+    input_ids = tf.keras.Input(shape=(max_len,), dtype=tf.int32, name='input_ids')
+    token_type_ids = tf.keras.Input(shape=(max_len,), dtype=tf.int32, name='token_type_ids')
+    attention_mask = tf.keras.Input(shape=(max_len,), dtype=tf.int32, name='attention_mask')
 
-    embedding = encoder([input_ids, attention_mask])    
+    embedding = encoder([input_ids, attention_mask, token_type_ids])    
     logits = embedding[0]
 
 
-    model = tf.keras.models.Model(inputs = [input_ids, attention_mask], 
+    model = tf.keras.models.Model(inputs = [input_ids, attention_mask, token_type_ids], 
                                   outputs = logits,
                                   name='tf_bert_classification')
 
