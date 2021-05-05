@@ -60,7 +60,7 @@ REQUIRED_PACKAGES = ['transformers==2.9.0',
 
 setup(
     name='bert_model',
-    version='0.6',
+    version='0.7',
     author='F. Tarrade',
     author_email='fabien.tarrade@gmail.com',
     install_requires=REQUIRED_PACKAGES,
