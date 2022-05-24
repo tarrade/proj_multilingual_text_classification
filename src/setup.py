@@ -7,7 +7,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 REQUIRED_PACKAGES = ['transformers==2.9.0',
-                     'tensorflow==2.5.2',
+                     'tensorflow==2.6.4',
                      'cloud-tpu-client==0.8',
                      'tensorboard_plugin_profile==2.2.0',
                      'absl-py==0.10.0',
