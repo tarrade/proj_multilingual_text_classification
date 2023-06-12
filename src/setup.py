@@ -6,7 +6,7 @@ Used for AI Platform training to pass packages dependencies
 from setuptools import find_packages
 from setuptools import setup
 
-REQUIRED_PACKAGES = ['transformers==2.9.0',
+REQUIRED_PACKAGES = ['transformers==4.30.0',
                      'tensorflow==2.7.2',
                      'cloud-tpu-client==0.8',
                      'tensorboard_plugin_profile==2.2.0',
@@ -18,7 +18,7 @@ REQUIRED_PACKAGES = ['transformers==2.9.0',
                      'google-cloud-translate==2.0.1',
                      'cloudml-hypertune==0.1.0.dev6']
 
-#REQUIRED_PACKAGES = ['transformers==2.9.0',
+#REQUIRED_PACKAGES = ['transformers==4.30.0',
 #                     'tensorflow==2.4.0',
 #                     'cloud-tpu-client==0.8',
 #                     'tensorboard_plugin_profile==2.3.0',
@@ -44,7 +44,7 @@ REQUIRED_PACKAGES = ['transformers==2.9.0',
 #                     'google-resumable-media== 0.5.0',
 #                     'cloudml-hypertune==0.1.0.dev6']
 
-#REQUIRED_PACKAGES = ['transformers==2.9.0',
+#REQUIRED_PACKAGES = ['transformers==4.30.0',
 #                     'tensorflow==2.2.0',
 #                     'tensorboard==2.2.2',
 #                     'cloud-tpu-client==0.8',
